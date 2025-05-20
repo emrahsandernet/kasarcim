@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Backend servisleri
   web:
@@ -21,7 +19,7 @@ services:
       - redis
     environment:
       - DEBUG=False
-      - SECRET_KEY=django-insecure-jmxlyorkuj7v$f-qal9_@_v3o=_u*y3!0(+kfk7xa^y8uv^e^a
+      - SECRET_KEY=django-insecure-jmxlyorkuj7v-qal9_@_v3o=_u*y3!0(+kfk7xa^y8uv^e^a
       - DATABASE_URL=postgres://ecommerce_user:ecommerce_pass@postgres:5432/ecommerce
       - ALLOWED_HOSTS=localhost,127.0.0.1
       - FRONTEND_URL=http://localhost
@@ -76,7 +74,7 @@ services:
       - postgres
     environment:
       - DEBUG=False
-      - SECRET_KEY=django-insecure-jmxlyorkuj7v$f-qal9_@_v3o=_u*y3!0(+kfk7xa^y8uv^e^a
+      - SECRET_KEY=django-insecure-jmxlyorkuj7v-qal9_@_v3o=_u*y3!0(+kfk7xa^y8uv^e^a
       - DATABASE_URL=postgres://ecommerce_user:ecommerce_pass@postgres:5432/ecommerce
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
@@ -92,7 +90,7 @@ services:
       - postgres
     environment:
       - DEBUG=False
-      - SECRET_KEY=django-insecure-jmxlyorkuj7v$f-qal9_@_v3o=_u*y3!0(+kfk7xa^y8uv^e^a
+      - SECRET_KEY=django-insecure-jmxlyorkuj7v-qal9_@_v3o=_u*y3!0(+kfk7xa^y8uv^e^a
       - DATABASE_URL=postgres://ecommerce_user:ecommerce_pass@postgres:5432/ecommerce
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
