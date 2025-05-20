@@ -1,0 +1,150 @@
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { AuthProvider } from '@/context/AuthContext';
+import { CartProvider } from '@/context/CartContext';
+import Navbar from '@/components/Navbar';
+import Footer from "@/components/Footer";
+import { Toaster } from 'react-hot-toast';
+
+const inter = Inter({ subsets: ["latin"] });
+
+export const metadata = {
+  metadataBase: new URL("https://www.kasarcim.com"), // ✅ Domainini buraya ekledik
+  title: "Kaşarcım - Türkiye'nin En Lezzetli ve Organik Kaşar Peyniri",
+  description: "Türkiye'nin en kaliteli ve organik peynir çeşitleri, lezzetli kaşar peynirleri ve süt ürünleri",
+  image: "/images/kasarcim-logo-icon.svg",
+  alternates: {
+    canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    nocache: false,
+  },
+  openGraph: {
+    title: "Kaşarcım - Türkiye'nin En Lezzetli ve Kaşar Peyniri",
+    description: "Doğal süt ve geleneksel yöntemlerle üretilen eşsiz tadıyla peynir çeşitleri. Sizin için özenle hazırlanıp gönderiliyor.",
+    images: ["/images/kasarcim-logo-icon.svg"],
+    type: "website",
+    locale: "tr_TR",
+    siteName: "Kaşarcım"
+  },
+  icons: {
+    icon: "/images/kasarcim-logo-icon.svg",
+    shortcut: "/images/kasarcim-logo-icon.svg",
+    apple: "/images/kasarcim-logo-icon.svg",
+  },
+  manifest: "/site.webmanifest",
+  appleWebApp: {
+    title: "Kaşarcım - Türkiye'nin En Lezzetli ve Organik Kaşar Peyniri",
+    statusBarStyle: "default",
+    capable: true,
+  },
+  mobileApp: true,
+  mobileAppIOS: true,
+  mobileAppAndroid: true,
+  twitter: {
+    card: "summary_large_image",
+    site: "@kasarcim",
+    creator: "@kasarcim",
+    title: "Kaşarcım - Türkiye'nin En Lezzetli Kaşar Peyniri",
+    description: "Organik süt ve geleneksel yöntemlerle üretilen eşsiz tadıyla peynir çeşitleri. Sizin için özenle hazırlanıp gönderiliyor.",
+    images: ["/images/kasarcim-logo-icon.svg"],
+  },
+};
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="tr">
+      <head>
+        {/* ✅ JSON-LD Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "Kaşarcım",
+              url: "https://www.kasarcim.com",
+              logo: "https://www.kasarcim.com/images/kasarcim-logo-icon.svg",
+              sameAs: [
+                "https://facebook.com/kasarcim",
+                "https://instagram.com/kasarcim",
+                "https://twitter.com/kasarcim"
+              ]
+            }),
+          }}
+        />
+      </head>
+      <body className={inter.className}>
+        <AuthProvider>
+          <CartProvider>
+            <div className="min-h-screen flex flex-col">
+              <Navbar />
+              <main className="flex-grow">{children}</main>
+              <Footer />
+            </div>
+            <Toaster
+              position="bottom-right"
+              toastOptions={{
+                duration: 3500,
+                style: {
+                  background: "#FFF8F1",
+                  color: "#333333",
+                  boxShadow: "0 10px 20px rgba(255, 107, 0, 0.15)",
+                  padding: "16px 20px",
+                  minWidth: "320px",
+                  maxWidth: "420px",
+                  fontSize: "0.925rem",
+                  borderRadius: "12px",
+                  border: "1px solid #FFE8D8",
+                  transition: "all 0.3s ease",
+                },
+                success: {
+                  style: {
+                    background: "linear-gradient(to right, #FFF7ED, #FFF8F1)",
+                    borderLeft: "5px solid #FF6B00",
+                  },
+                  iconTheme: {
+                    primary: "#FF6B00",
+                    secondary: "#FFFFFF",
+                  },
+                },
+                error: {
+                  style: {
+                    background: "linear-gradient(to right, #FEF2F2, #FFF1F1)",
+                    borderLeft: "5px solid #EF4444",
+                  },
+                  iconTheme: {
+                    primary: "#EF4444",
+                    secondary: "#FFFFFF",
+                  },
+                },
+                loading: {
+                  style: {
+                    background: "linear-gradient(to right, #FFF7ED, #FFF8F1)",
+                    borderLeft: "5px solid #FF8C55",
+                  },
+                  iconTheme: {
+                    primary: "#FF8C55",
+                    secondary: "#FFFFFF",
+                  },
+                },
+                custom: {
+                  style: {
+                    background: "linear-gradient(to right, #FFF7ED, #FFF8F1)",
+                    borderLeft: "5px solid #FF6B00",
+                  },
+                  iconTheme: {
+                    primary: "#FF6B00",
+                    secondary: "#FFFFFF",
+                  },
+                },
+              }}
+            />
+          </CartProvider>
+        </AuthProvider>
+      </body>
+    </html>
+  );
+}

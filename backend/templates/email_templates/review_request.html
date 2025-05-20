@@ -1,0 +1,190 @@
+{% extends "email_templates/base_email.html" %} {% block title %}Siparişinizi
+Değerlendirmeye Ne Dersiniz?{% endblock %} {% block content %}
+<div class="email-content" style="max-width: 600px; margin: 0 auto">
+  <!-- Başlık ve İntro -->
+  <div style="text-align: center; margin-bottom: 30px">
+    <div
+      style="
+        background-color: #fff3e0;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+      "
+    >
+      <div style="font-size: 54px; color: #f39c12; margin-bottom: 15px">
+        ⭐⭐⭐⭐⭐
+      </div>
+      <h1 style="color: #333; font-size: 24px; margin: 0 0 10px 0">
+        Değerlendirmenizi Bekliyoruz!
+      </h1>
+      <p style="color: #666; font-size: 16px; margin: 0">
+        Fikirleriniz bizim için değerli. Deneyiminizi paylaşmanız diğer
+        müşterilerimize yardımcı olur.
+      </p>
+    </div>
+    <p style="color: #666; font-size: 16px; line-height: 1.5">
+      Merhaba
+      <span style="font-weight: 600; color: #333"
+        >{{ user.first_name|default:user.username }}</span
+      >, umarız <strong>#{{ order.id }}</strong> numaralı siparişinizden memnun
+      kalmışsınızdır!
+    </p>
+  </div>
+
+  <!-- Sipariş Ürünleri -->
+  <div
+    style="
+      background-color: #f9f9f9;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 30px;
+      border: 1px solid #eee;
+    "
+  >
+    <div
+      style="
+        background-color: #f39c12;
+        padding: 15px;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+      "
+    >
+      📦 Aldığınız Ürünler
+    </div>
+    <div style="padding: 20px">
+      {% for item in order.items.all %}
+      <div
+        style="margin-bottom: {% if not forloop.last %}15px; padding-bottom: 15px; border-bottom: 1px solid #f5f5f5;{% else %}0;{% endif %}"
+      >
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          <tr>
+            <td width="60" valign="top">
+              {% if item.product.image %}
+              <div
+                style="
+                  width: 60px;
+                  height: 60px;
+                  border-radius: 8px;
+                  overflow: hidden;
+                  background-color: #f9f9f9;
+                "
+              >
+                <img
+                  src="{{ item.product.image.url }}"
+                  alt="{{ item.product.name }}"
+                  style="width: 100%; height: 100%; object-fit: cover"
+                />
+              </div>
+              {% else %}
+              <div
+                style="
+                  width: 60px;
+                  height: 60px;
+                  border-radius: 8px;
+                  overflow: hidden;
+                  background-color: #f9f9f9;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                "
+              >
+                <span style="color: #aaa; font-size: 20px">🧀</span>
+              </div>
+              {% endif %}
+            </td>
+            <td style="padding-left: 15px" valign="top">
+              <div
+                style="
+                  font-size: 14px;
+                  font-weight: 600;
+                  color: #333;
+                  margin-bottom: 5px;
+                "
+              >
+                {{ item.product.name }}
+              </div>
+              <div style="font-size: 14px; margin-top: 5px">
+                <a
+                  href="{{ item.product.review_url }}"
+                  style="
+                    color: #f39c12;
+                    text-decoration: underline;
+                    font-weight: 500;
+                  "
+                  >Bu ürünü değerlendirin</a
+                >
+              </div>
+            </td>
+          </tr>
+        </table>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Memnun Kalmama Durumu -->
+  <div
+    style="
+      background-color: #f9f9fa;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 30px;
+      border: 1px solid #eee;
+    "
+  >
+    <div
+      style="
+        background-color: #e67e22;
+        padding: 15px;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+      "
+    >
+      ⚠️ Memnun Kalmadınız mı?
+    </div>
+    <div style="padding: 20px">
+      <p
+        style="
+          color: #333;
+          font-size: 14px;
+          margin: 0 0 10px 0;
+          line-height: 1.5;
+        "
+      >
+        Eğer siparişinizle ilgili herhangi bir sorun yaşadıysanız, lütfen bize
+        bildirin. Müşteri memnuniyeti bizim için çok önemli.
+      </p>
+      <div style="text-align: center; margin-top: 15px">
+        <a
+          href="{{ contact_url }}"
+          style="
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            background-color: #f5f5f5;
+            color: #e67e22;
+            text-decoration: none;
+            border-radius: 6px;
+            border: 1px solid #e67e22;
+          "
+          >Müşteri Hizmetleriyle İletişime Geçin</a
+        >
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Mesaj -->
+  <div style="text-align: center; margin-top: 30px">
+    <p style="color: #666; font-size: 14px; margin-bottom: 5px">
+      Değerlendirmeniz için şimdiden teşekkür ederiz!
+    </p>
+    <p style="color: #333; font-size: 16px; font-weight: 600; margin-top: 10px">
+      Saygılarımızla,<br />
+      Kaşarcım Ekibi
+    </p>
+  </div>
+</div>
+{% endblock %}

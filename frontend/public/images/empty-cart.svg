@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <style>
+    .cart-circle { fill: #FEF3C7; }
+    .cart-wheel { fill: #9A3412; }
+    .cart-body { fill: #F97316; }
+    .cart-handle { fill: #9A3412; }
+    .cart-item { fill: #9A3412; opacity: 0.2; }
+    .sad-face { fill: #9A3412; }
+  </style>
+  <circle class="cart-circle" cx="256" cy="256" r="256" opacity="0.3"/>
+  <g transform="translate(100, 100) scale(0.6)">
+    <!-- Ana sepet iskeleti -->
+    <path class="cart-body" d="M384,112H128l32,192h192L384,112z"/>
+    <path class="cart-handle" d="M128,112L96,16H32v16h48l32,96v192h16V112H128z"/>
+    
+    <!-- Alt tekerler -->
+    <circle class="cart-wheel" cx="144" cy="352" r="16"/>
+    <circle class="cart-wheel" cx="336" cy="352" r="16"/>
+    
+    <!-- Üzgün yüz ifadesi -->
+    <circle class="sad-face" cx="240" cy="256" r="6"/>
+    <circle class="sad-face" cx="272" cy="256" r="6"/>
+    <path class="sad-face" d="M256,298c-12,0-24-5-32-13l8-8c6,6,15,9,24,9s18-3,24-9l8,8C280,293,268,298,256,298z" transform="rotate(180, 256, 292)"/>
+  </g>
+</svg> 

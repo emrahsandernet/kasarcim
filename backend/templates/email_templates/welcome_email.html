@@ -1,0 +1,145 @@
+{% extends "email_templates/base_email.html" %} {% block title %}Kaşarcım'a Hoş
+Geldiniz!{% endblock %} {% block content %}
+<div class="email-content">
+  <!-- Başlık ve İntro -->
+  <div style="text-align: center; margin-bottom: 30px">
+    <div
+      style="
+        background-color: #f0f8ec;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+      "
+    >
+      <img
+        src="https://cdn-icons-png.flaticon.com/512/1702/1702180.png"
+        alt="Hoşgeldiniz Görseli"
+        style="width: 80px; height: 80px; margin-bottom: 15px"
+      />
+      <h1 style="color: #333; font-size: 24px; margin: 0 0 10px 0">
+        Kaşarcım'a Hoş Geldiniz!
+      </h1>
+      <p style="color: #666; font-size: 16px; margin: 0">
+        Hesabınız başarıyla oluşturuldu ve artık alışveriş yapmaya hazırsınız.
+      </p>
+    </div>
+    <p style="color: #666; font-size: 16px; line-height: 1.5">
+      Merhaba
+      <span style="font-weight: 600; color: #333"
+        >{{ user.first_name|default:user.username }}</span
+      >, Kaşarcım ailesine katıldığınız için teşekkür ederiz!
+    </p>
+  </div>
+
+  <!-- Hesap Bilgileri -->
+  <div
+    style="
+      background-color: #f9f9f9;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 30px;
+      border: 1px solid #eee;
+    "
+  >
+    <div
+      style="
+        background-color: #e67e22;
+        padding: 15px;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+      "
+    >
+      👤 Hesap Bilgileriniz
+    </div>
+    <div style="padding: 20px">
+      <div
+        style="
+          background-color: white;
+          border-radius: 8px;
+          padding: 20px;
+          border: 1px solid #eee;
+        "
+      >
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px">
+          <div>
+            <div style="font-size: 12px; color: #777; margin-bottom: 3px">
+              Kullanıcı Adı
+            </div>
+            <div style="font-size: 14px; font-weight: 600; color: #333">
+              {{ user.username }}
+            </div>
+          </div>
+          <div>
+            <div style="font-size: 12px; color: #777; margin-bottom: 3px">
+              E-posta Adresi
+            </div>
+            <div style="font-size: 14px; font-weight: 600; color: #333">
+              {{ user.email }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alışveriş Çağrısı -->
+  <div
+    style="
+      background-color: #fff8e1;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 30px;
+      border: 1px solid #ffecb3;
+      text-align: center;
+    "
+  >
+    <div
+      style="
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 10px;
+      "
+    >
+      🧀 Türkiye'nin En Kaliteli Peynir ve Süt Ürünleri
+    </div>
+    <p style="color: #666; font-size: 14px; margin-bottom: 15px">
+      Türkiye'nin en kaliteli peynir ve süt ürünleri artık parmaklarınızın
+      ucunda. Hemen alışverişe başlayabilir, özel tekliflerden ve indirimlerden
+      yararlanabilirsiniz.
+    </p>
+    <a
+      href="{{ frontend_url }}"
+      class="btn"
+      style="
+        display: inline-block;
+        background-color: #e67e22;
+        color: white;
+        padding: 14px 32px;
+        text-decoration: none;
+        font-size: 16px;
+        font-weight: 600;
+        border-radius: 6px;
+      "
+      >Hemen Alışverişe Başlayın</a
+    >
+  </div>
+
+  <!-- Footer Mesaj -->
+  <div style="text-align: center; margin-top: 30px">
+    <p
+      style="color: #666; font-size: 14px; line-height: 1.5; margin-bottom: 5px"
+    >
+      Hesabınızla ilgili herhangi bir sorunuz varsa, dilediğiniz zaman bizimle
+      iletişime geçebilirsiniz.
+    </p>
+    <p style="color: #666; font-size: 14px; margin-bottom: 15px">
+      Kaşarcım ailesine katıldığınız için teşekkür ederiz!
+    </p>
+    <p style="color: #333; font-size: 16px; font-weight: 600; margin-top: 10px">
+      Sevgilerle,<br />Kaşarcım Ekibi
+    </p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,206 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Kaşarcım{% endblock %}</title>
+    <style>
+      /* Temel Stiller */
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        margin: 0;
+        padding: 0;
+        background-color: #f7f7f7;
+      }
+      .container {
+        max-width: 600px;
+        margin: 20px auto;
+        padding: 0;
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+      }
+      .header {
+        text-align: center;
+        padding: 30px 0;
+        background-color: #fff;
+        border-bottom: 1px solid #f0f0f0;
+      }
+      .header img {
+        max-width: 180px;
+        height: auto;
+      }
+      .content {
+        padding: 40px 30px;
+        color: #444;
+      }
+      .footer {
+        text-align: center;
+        padding: 30px 20px;
+        font-size: 13px;
+        color: #888;
+        background-color: #f9f9f9;
+      }
+      .btn {
+        display: inline-block;
+        padding: 14px 28px;
+        background-color: #e67e22;
+        color: white !important;
+        text-decoration: none;
+        border-radius: 50px;
+        font-weight: 600;
+        margin: 25px 0;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(230, 126, 34, 0.25);
+        transition: all 0.2s ease;
+      }
+      .btn:hover {
+        background-color: #d35400;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(230, 126, 34, 0.3);
+      }
+      h1,
+      h2,
+      h3 {
+        color: #333;
+        margin-top: 0;
+        font-weight: 600;
+      }
+      h1 {
+        font-size: 24px;
+        margin-bottom: 20px;
+      }
+      h2 {
+        font-size: 20px;
+        margin-bottom: 16px;
+        color: #e67e22;
+      }
+      p {
+        margin-bottom: 16px;
+        color: #555;
+      }
+      .product-item {
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        background-color: #fff;
+        border: 1px solid #f0f0f0;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+      }
+      .product-image {
+        width: 70px;
+        height: 70px;
+        margin-right: 16px;
+        object-fit: cover;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+      }
+      .product-details {
+        flex: 1;
+      }
+      .order-info {
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+        border: 1px solid #f0f0f0;
+      }
+      .price {
+        font-weight: bold;
+        color: #e67e22;
+        font-size: 16px;
+      }
+      .social-links {
+        margin-top: 24px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+      }
+      .social-links a {
+        display: inline-block;
+        margin: 0 10px;
+        color: #e67e22;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+      }
+      .social-links a:hover {
+        color: #d35400;
+      }
+      .company-info {
+        margin-top: 24px;
+        color: #999;
+        font-size: 12px;
+      }
+      .divider {
+        height: 1px;
+        background-color: #f0f0f0;
+        margin: 20px 0;
+      }
+      .highlight {
+        color: #e67e22;
+        font-weight: 600;
+      }
+      @media only screen and (max-width: 600px) {
+        .container {
+          width: 100%;
+          margin: 0;
+          border-radius: 0;
+        }
+        .content {
+          padding: 30px 20px;
+        }
+        .btn {
+          display: block;
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <img
+          src="https://cdn.kasarcim.com/727b287e1370e7bc_logo.png"
+          alt="Kaşarcım Logo"
+        />
+      </div>
+
+      <div class="content">{% block content %} {% endblock %}</div>
+
+      <div class="footer">
+        <p style="font-size: 14px; color: #777; margin-bottom: 8px">
+          © 2023 Kaşarcım. Tüm hakları saklıdır.
+        </p>
+        <p style="font-size: 13px; color: #888; margin-bottom: 20px">
+          Bu e-posta <span class="highlight">{{ email }}</span> adresine
+          gönderilmiştir.
+        </p>
+        <div class="social-links">
+          <a href="https://facebook.com/kasarcim">Facebook</a> |
+          <a href="https://instagram.com/kasarcim">Instagram</a> |
+          <a href="https://twitter.com/kasarcim">Twitter</a>
+        </div>
+        <div class="company-info">
+          <p style="margin-bottom: 8px">
+            Güleser Sk. No: 4, Kat: 4, Çekmeköy/İstanbul
+          </p>
+          <p style="margin-bottom: 0">
+            Müşteri Hizmetleri:
+            <a
+              href="tel:+905369886912"
+              style="color: #e67e22; text-decoration: none"
+              >0536 988 69 12</a
+            >
+          </p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

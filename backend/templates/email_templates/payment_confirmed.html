@@ -1,0 +1,555 @@
+{% extends "email_templates/base_email.html" %} {% block title %}Ödemeniz
+Onaylandı{% endblock %} {% block content %}
+<div class="email-content" style="max-width: 600px; margin: 0 auto">
+  <!-- Başlık ve Onay Mesajı -->
+  <div style="text-align: center; margin-bottom: 30px">
+    <div
+      style="
+        background-color: #e7f9ed;
+        padding: 25px 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+      "
+    >
+      <img
+        src="https://cdn-icons-png.flaticon.com/512/190/190411.png"
+        alt="Ödeme Onayı"
+        style="width: 80px; height: 80px; margin-bottom: 15px"
+      />
+      <h1 style="color: #27ae60; font-size: 24px; margin: 0 0 10px 0">
+        Ödemeniz Onaylandı!
+      </h1>
+      <p style="color: #666; font-size: 16px; margin: 0 0 10px 0">
+        Siparişiniz için ödemeniz başarıyla alındı.
+      </p>
+      <div
+        style="
+          font-size: 24px;
+          font-weight: 700;
+          color: #27ae60;
+          margin-top: 15px;
+        "
+      >
+        {{ order.get_total_price }} TL
+      </div>
+    </div>
+    <p style="color: #666; font-size: 16px; line-height: 1.5">
+      Merhaba
+      <span style="font-weight: 600; color: #333"
+        >{{ user.first_name|default:user.username }}</span
+      >, <strong>#{{ order_id }}</strong> numaralı siparişiniz için ödemeniz
+      onaylandı ve siparişiniz hazırlanmaya başladı.
+    </p>
+  </div>
+
+  <!-- İşlem Durumu -->
+  <div
+    style="
+      background-color: #f9f9f9;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 30px;
+      border: 1px solid #eee;
+    "
+  >
+    <div
+      style="
+        background-color: #27ae60;
+        padding: 15px;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+      "
+    >
+      💳 Ödeme Durumu: Başarılı
+    </div>
+    <div style="padding: 20px">
+      <!-- Sipariş Durumu Adımları - Tablo Yapısı ile -->
+      <table
+        cellpadding="0"
+        cellspacing="0"
+        border="0"
+        width="100%"
+        style="margin-bottom: 25px"
+      >
+        <tr>
+          <td align="center" width="33%" style="padding-bottom: 10px">
+            <div
+              style="
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background-color: #27ae60;
+                color: white;
+                line-height: 40px;
+                text-align: center;
+                margin: 0 auto;
+                font-weight: bold;
+                font-size: 18px;
+              "
+            >
+              1
+            </div>
+          </td>
+          <td align="center" width="33%" style="padding-bottom: 10px">
+            <div
+              style="
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background-color: #27ae60;
+                color: white;
+                line-height: 40px;
+                text-align: center;
+                margin: 0 auto;
+                font-weight: bold;
+                font-size: 18px;
+              "
+            >
+              2
+            </div>
+          </td>
+          <td align="center" width="33%" style="padding-bottom: 10px">
+            <div
+              style="
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background-color: #ccc;
+                color: white;
+                line-height: 40px;
+                text-align: center;
+                margin: 0 auto;
+                font-weight: bold;
+                font-size: 18px;
+              "
+            >
+              3
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding-bottom: 5px">
+            <div style="font-size: 14px; font-weight: 500; color: #333">
+              Sipariş Alındı
+            </div>
+          </td>
+          <td align="center" style="padding-bottom: 5px">
+            <div style="font-size: 14px; font-weight: 500; color: #333">
+              Ödeme Onaylandı
+            </div>
+          </td>
+          <td align="center" style="padding-bottom: 5px">
+            <div style="font-size: 14px; font-weight: 500; color: #777">
+              Kargoya Verildi
+            </div>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Ödeme Bilgileri -->
+      <div
+        style="
+          background-color: white;
+          border-radius: 8px;
+          padding: 20px;
+          border: 1px solid #eee;
+        "
+      >
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          <tr>
+            <td width="50%" style="padding-bottom: 15px">
+              <div style="font-size: 12px; color: #777; margin-bottom: 3px">
+                Sipariş Numarası
+              </div>
+              <div style="font-size: 14px; font-weight: 600; color: #333">
+                #{{ order_id }}
+              </div>
+            </td>
+            <td width="50%" style="padding-bottom: 15px">
+              <div style="font-size: 12px; color: #777; margin-bottom: 3px">
+                Ödeme Yöntemi
+              </div>
+              <div style="font-size: 14px; font-weight: 600; color: #333">
+                {{ order.payment_method }}
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td width="50%" style="padding-bottom: 15px">
+              <div style="font-size: 12px; color: #777; margin-bottom: 3px">
+                Sipariş Tarihi
+              </div>
+              <div style="font-size: 14px; font-weight: 600; color: #333">
+                {{ order.created_at|date:"d F Y, H:i" }}
+              </div>
+            </td>
+            <td width="50%" style="padding-bottom: 15px">
+              <div style="font-size: 12px; color: #777; margin-bottom: 3px">
+                Ödeme Tarihi
+              </div>
+              <div style="font-size: 14px; font-weight: 600; color: #333">
+                {{ order.paid_at|date:"d F Y, H:i" }}
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              <div style="font-size: 12px; color: #777; margin-bottom: 3px">
+                Teslimat Adresi
+              </div>
+              <div style="font-size: 14px; font-weight: 500; color: #333">
+                {{ order.shipping_address }}
+              </div>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sipariş Özeti -->
+  <div
+    style="
+      background-color: #f9f9f9;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 30px;
+      border: 1px solid #eee;
+    "
+  >
+    <div
+      style="
+        background-color: #e67e22;
+        padding: 15px;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+      "
+    >
+      🧾 Sipariş Özeti (#SP{{ order_id }})
+    </div>
+    <div style="padding: 20px">
+      <div
+        style="
+          background-color: white;
+          border-radius: 8px;
+          padding: 20px;
+          margin-bottom: 20px;
+          border: 1px solid #eee;
+        "
+      >
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          <tr>
+            <td width="100%" style="padding-bottom: 15px">
+              <div style="font-size: 12px; color: #777; margin-bottom: 3px">
+                Sipariş Tarihi
+              </div>
+              <div style="font-size: 14px; font-weight: 600; color: #333">
+                {{ order.created_at|date:"d F Y, H:i" }}
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td width="100%" style="padding-bottom: 15px">
+              <div style="font-size: 12px; color: #777; margin-bottom: 3px">
+                Sipariş Numarası
+              </div>
+              <div style="font-size: 14px; font-weight: 600; color: #333">
+                #SP{{ order_id }}
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td width="100%" style="padding-bottom: 15px">
+              <div style="font-size: 12px; color: #777; margin-bottom: 3px">
+                Ödeme Durumu
+              </div>
+              <div
+                style="font-size: 14px; font-weight: 600; {% if order.is_paid %}color: #27ae60;{% else %}color: #e67e22;{% endif %}"
+              >
+                {% if order.is_paid %} ✅ Ödendi {% else %} ⏳ Ödeme Bekleniyor
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td width="100%" style="padding-bottom: 15px">
+              <div style="font-size: 12px; color: #777; margin-bottom: 3px">
+                Teslimat Adresi
+              </div>
+              <div style="font-size: 14px; font-weight: 500; color: #333">
+                {{ order.shipping_address }}
+              </div>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Sipariş Ürünleri -->
+      <div
+        style="
+          background-color: white;
+          border-radius: 8px;
+          padding: 20px;
+          margin-bottom: 20px;
+          border: 1px solid #eee;
+        "
+      >
+        <div
+          style="
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+          "
+        >
+          Sipariş İçeriği
+        </div>
+
+        {% for item_data in order_items %} {% with item=item_data.item %}
+        <div
+          style="margin-bottom: {% if not forloop.last %}15px; padding-bottom: 15px; border-bottom: 1px solid #f5f5f5;{% else %}0;{% endif %}"
+        >
+          <table cellpadding="0" cellspacing="0" border="0" width="100%">
+            <tr>
+              <td width="60" valign="top">
+                {% if item.product.img_url %}
+                <div
+                  style="
+                    width: 60px;
+                    height: 60px;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    background-color: #f9f9f9;
+                  "
+                >
+                  <img
+                    src="{{ item.product.img_url }}"
+                    alt="{{ item.product.name }}"
+                    style="width: 100%; height: 100%; object-fit: cover"
+                  />
+                </div>
+                {% else %}
+                <div
+                  style="
+                    width: 60px;
+                    height: 60px;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    background-color: #f9f9f9;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  "
+                >
+                  <span style="color: #aaa; font-size: 20px">🧀</span>
+                </div>
+                {% endif %}
+              </td>
+              <td style="padding-left: 15px" valign="top">
+                <div
+                  style="
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #333;
+                    margin-bottom: 5px;
+                  "
+                >
+                  {{ item.product.name }}
+                </div>
+                <div style="font-size: 12px; color: #777">
+                  Miktar: {{ item.quantity }}
+                </div>
+                <div style="margin-top: 5px">
+                  {% if item_data.has_discount %}
+                  <span
+                    style="
+                      font-size: 12px;
+                      color: #777;
+                      text-decoration: line-through;
+                    "
+                    >{{ item_data.original_price }} TL</span
+                  >
+                  <span
+                    style="
+                      font-size: 14px;
+                      font-weight: 600;
+                      color: #e74c3c;
+                      margin-left: 5px;
+                    "
+                    >{{ item_data.discounted_price }} TL</span
+                  >
+                  <span
+                    style="font-size: 12px; color: #e74c3c; margin-left: 5px"
+                    >(%{{ item_data.discount_percentage|floatformat:0 }}
+                    indirim)</span
+                  >
+                  {% else %}
+                  <span
+                    style="font-size: 14px; font-weight: 600; color: #e67e22"
+                    >{{ item.price }} TL</span
+                  >
+                  {% endif %}
+                </div>
+                <div
+                  style="
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #e67e22;
+                    margin-top: 5px;
+                  "
+                >
+                  Toplam: {{ item_data.total_price }} TL
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+        {% endwith %} {% endfor %}
+      </div>
+
+      <!-- Ödeme Özeti -->
+      <div
+        style="
+          background-color: white;
+          border-radius: 8px;
+          padding: 20px;
+          border: 1px solid #eee;
+        "
+      >
+        <div
+          style="
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+          "
+        >
+          Ödeme Özeti
+        </div>
+
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          <tr>
+            <td
+              align="left"
+              style="padding-bottom: 8px; font-size: 14px; color: #666"
+            >
+              Ara Toplam:
+            </td>
+            <td
+              align="right"
+              style="
+                padding-bottom: 8px;
+                font-size: 14px;
+                color: #333;
+                font-weight: 500;
+              "
+            >
+              {{ order.get_subtotal_price }} TL
+            </td>
+          </tr>
+
+          {% if order.cod_fee %}
+          <tr>
+            <td
+              align="left"
+              style="padding-bottom: 8px; font-size: 14px; color: #666"
+            >
+              Kapıda Ödeme Ücreti:
+            </td>
+            <td
+              align="right"
+              style="
+                padding-bottom: 8px;
+                font-size: 14px;
+                color: #333;
+                font-weight: 500;
+              "
+            >
+              {{ order.cod_fee }} TL
+            </td>
+          </tr>
+          {% endif %} {% if order.coupon %}
+          <tr>
+            <td
+              align="left"
+              style="padding-bottom: 8px; font-size: 14px; color: #666"
+            >
+              Kupon İndirimi:
+            </td>
+            <td
+              align="right"
+              style="
+                padding-bottom: 8px;
+                font-size: 14px;
+                color: #e74c3c;
+                font-weight: 500;
+              "
+            >
+              -{{ order.get_discount }} TL
+            </td>
+          </tr>
+          {% endif %}
+
+          <tr>
+            <td
+              align="left"
+              style="padding-bottom: 8px; font-size: 14px; color: #666"
+            >
+              Kargo Ücreti:
+            </td>
+            <td
+              align="right"
+              style="
+                padding-bottom: 8px;
+                font-size: 14px;
+                color: #333;
+                font-weight: 500;
+              "
+            >
+              {{ order.shipping_cost }} TL
+            </td>
+          </tr>
+
+          <tr>
+            <td
+              colspan="2"
+              style="padding-top: 10px; border-top: 1px solid #eee"
+            ></td>
+          </tr>
+
+          <tr>
+            <td
+              align="left"
+              style="
+                padding-top: 10px;
+                font-size: 16px;
+                color: #333;
+                font-weight: 600;
+              "
+            >
+              Toplam:
+            </td>
+            <td
+              align="right"
+              style="
+                padding-top: 10px;
+                font-size: 16px;
+                color: #e67e22;
+                font-weight: 600;
+              "
+            >
+              {{ order.get_total_price }} TL
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endblock %}
+</div>

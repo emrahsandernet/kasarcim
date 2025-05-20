@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="100%" height="100%">
+  <!-- Peynir renginde arka plan dolgusu -->
+  <defs>
+    <linearGradient id="peynirGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f9c963;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f9b233;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- K harfi (peynir görünümlü) -->
+  <text x="40" y="60" font-family="Arial Black, Helvetica, sans-serif" font-size="70" font-weight="900" text-anchor="middle" fill="url(#peynirGradient)">K</text>
+  
+  <!-- Kaşar deliklerini taklit eden clipPath -->
+  <defs>
+    <clipPath id="peynirDelikleri">
+      <text x="40" y="60" font-family="Arial Black, Helvetica, sans-serif" font-size="70" font-weight="900" text-anchor="middle">K</text>
+    </clipPath>
+  </defs>
+  
+  <!-- Kaşar delikleri (yazı içinde görünecek) -->
+  <g clip-path="url(#peynirDelikleri)">
+    <circle cx="30" cy="35" r="7" fill="#e6850e" />
+    <circle cx="45" cy="45" r="5" fill="#e6850e" />
+    <circle cx="30" cy="55" r="6" fill="#e6850e" />
+    <circle cx="40" cy="30" r="4" fill="#e6850e" />
+    <circle cx="50" cy="40" r="6" fill="#e6850e" />
+  </g>
+  
+  <!-- Yazı kenarı için gölge efekti -->
+  <text x="41" y="61" font-family="Arial Black, Helvetica, sans-serif" font-size="70" font-weight="900" text-anchor="middle" fill="#c08c22" opacity="0.5">K</text>
+</svg> 

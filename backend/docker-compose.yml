@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    restart: always
+    volumes:
+      - ./static:/app/static
+      - ./media:/app/media
+    expose:
+      - "8000"
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - DEBUG=0
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1
+    depends_on:
+      - postgres
+      - redis
+    command: >
+      bash -c "python manage.py migrate &&
+               python manage.py collectstatic --noinput &&
+               gunicorn ecommerce.wsgi:application --bind 0.0.0.0:8000 --workers 4"
+
+  nginx:
+    image: nginx:1.23-alpine
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./static:/app/static
+      - ./media:/app/media
+      - ../frontend/.next:/app/frontend/.next
+      - ../frontend/public:/app/frontend/public
+    depends_on:
+      - web
+
+  postgres:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:6
+    ports:
+      - "6379:6379"
+
+  celery:
+    build: .
+    command: celery -A ecommerce worker -l INFO
+    volumes:
+      - .:/app/
+    env_file:
+      - .env
+    depends_on:
+      - web
+      - redis
+      - postgres
+
+  celery-beat:
+    build: .
+    command: celery -A ecommerce beat -l INFO
+    volumes:
+      - .:/app/
+    env_file:
+      - .env
+    depends_on:
+      - web
+      - redis
+      - postgres
+
+volumes:
+  postgres_data:

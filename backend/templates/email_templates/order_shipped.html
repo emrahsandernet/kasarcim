@@ -1,0 +1,577 @@
+{% extends "email_templates/base_email.html" %} {% block title %}Siparişiniz
+Kargoya Verildi{% endblock %} {% block content %}
+<div class="email-content" style="max-width: 600px; margin: 0 auto">
+  <!-- Başlık ve İntro -->
+  <div style="text-align: center; margin-bottom: 30px">
+    <div
+      style="
+        background-color: #f0f8ff;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+      "
+    >
+      <img
+        src="https://cdn-icons-png.flaticon.com/512/2518/2518048.png"
+        alt="Kargo Görseli"
+        style="width: 80px; height: 80px; margin-bottom: 15px"
+      />
+      <h1 style="color: #333; font-size: 24px; margin: 0 0 10px 0">
+        Siparişiniz Kargoya Verildi!
+      </h1>
+      <p style="color: #666; font-size: 16px; margin: 0">
+        Siparişiniz kargoya verildi ve size doğru yola çıktı.
+      </p>
+    </div>
+    <p style="color: #666; font-size: 16px; line-height: 1.5">
+      Sayın
+      <span style="font-weight: 600; color: #333"
+        >{{ user.first_name }} {{ user.last_name }}</span
+      >, siparişiniz hazırlandı ve kargoya teslim edildi. Aşağıda sipariş ve
+      kargo detaylarını bulabilirsiniz.
+    </p>
+  </div>
+
+  <!-- Kargo Durumu -->
+  <div
+    style="
+      background-color: #f9f9f9;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 30px;
+      border: 1px solid #eee;
+    "
+  >
+    <div
+      style="
+        background-color: #e67e22;
+        padding: 15px;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+      "
+    >
+      📦 Kargo Durumu: Gönderildi
+    </div>
+    <div style="padding: 20px">
+      <!-- Sipariş Durumu Adımları - Tablo Yapısı ile -->
+      <table
+        cellpadding="0"
+        cellspacing="0"
+        border="0"
+        width="100%"
+        style="margin-bottom: 25px"
+      >
+        <tr>
+          <td align="center" width="33%" style="padding-bottom: 10px">
+            <div
+              style="
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background-color: #e67e22;
+                color: white;
+                line-height: 40px;
+                text-align: center;
+                margin: 0 auto;
+                font-weight: bold;
+                font-size: 18px;
+              "
+            >
+              1
+            </div>
+          </td>
+          <td align="center" width="33%" style="padding-bottom: 10px">
+            <div
+              style="
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background-color: #e67e22;
+                color: white;
+                line-height: 40px;
+                text-align: center;
+                margin: 0 auto;
+                font-weight: bold;
+                font-size: 18px;
+              "
+            >
+              2
+            </div>
+          </td>
+          <td align="center" width="33%" style="padding-bottom: 10px">
+            <div
+              style="
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background-color: #ccc;
+                color: white;
+                line-height: 40px;
+                text-align: center;
+                margin: 0 auto;
+                font-weight: bold;
+                font-size: 18px;
+              "
+            >
+              3
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding-bottom: 5px">
+            <div style="font-size: 14px; font-weight: 500; color: #333">
+              Hazırlandı
+            </div>
+          </td>
+          <td align="center" style="padding-bottom: 5px">
+            <div style="font-size: 14px; font-weight: 500; color: #333">
+              Kargoya Verildi
+            </div>
+          </td>
+          <td align="center" style="padding-bottom: 5px">
+            <div style="font-size: 14px; font-weight: 500; color: #777">
+              Teslim Edildi
+            </div>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Kargo Bilgileri -->
+      <div
+        style="
+          background-color: white;
+          border-radius: 8px;
+          padding: 20px;
+          border: 1px solid #eee;
+        "
+      >
+        <table
+          cellpadding="0"
+          cellspacing="0"
+          border="0"
+          width="100%"
+          style="margin-bottom: 15px"
+        >
+          <tr>
+            <td width="50%" style="padding-bottom: 15px">
+              <div style="font-size: 12px; color: #777; margin-bottom: 3px">
+                Kargo Firması
+              </div>
+              <div style="font-size: 14px; font-weight: 600; color: #333">
+                {{ shipping_company }}
+              </div>
+            </td>
+            <td width="50%" style="padding-bottom: 15px">
+              <div style="font-size: 12px; color: #777; margin-bottom: 3px">
+                Tahmini Teslim
+              </div>
+              <div style="font-size: 14px; font-weight: 600; color: #333">
+                {{ estimated_delivery }}
+              </div>
+            </td>
+          </tr>
+        </table>
+
+        <div style="margin-bottom: 15px">
+          <div style="font-size: 12px; color: #777; margin-bottom: 3px">
+            Takip Numarası
+          </div>
+          <div
+            style="
+              font-size: 14px;
+              font-weight: 600;
+              color: #333;
+              background-color: #f5f5f5;
+              padding: 10px;
+              border-radius: 6px;
+              border: 1px dashed #ddd;
+            "
+          >
+            {{ tracking_number }}
+          </div>
+        </div>
+
+        {% if tracking_url %}
+        <a
+          href="{{ tracking_url }}"
+          class="btn"
+          style="
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+            margin-top: 10px;
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            background-color: #e67e22;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            box-sizing: border-box;
+          "
+          >Kargonuzu Takip Edin</a
+        >
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Sipariş Özeti -->
+  <div
+    style="
+      background-color: #f9f9f9;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 30px;
+      border: 1px solid #eee;
+    "
+  >
+    <div
+      style="
+        background-color: #e67e22;
+        padding: 15px;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+      "
+    >
+      🧾 Sipariş Özeti (#SP{{ order_id }})
+    </div>
+    <div style="padding: 20px">
+      <div
+        style="
+          background-color: white;
+          border-radius: 8px;
+          padding: 20px;
+          margin-bottom: 20px;
+          border: 1px solid #eee;
+        "
+      >
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          <tr>
+            <td width="100%" style="padding-bottom: 15px">
+              <div style="font-size: 12px; color: #777; margin-bottom: 3px">
+                Sipariş Tarihi
+              </div>
+              <div style="font-size: 14px; font-weight: 600; color: #333">
+                {{ order.created_at|date:"d F Y, H:i" }}
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td width="100%" style="padding-bottom: 15px">
+              <div style="font-size: 12px; color: #777; margin-bottom: 3px">
+                Sipariş Numarası
+              </div>
+              <div style="font-size: 14px; font-weight: 600; color: #333">
+                #SP{{ order_id }}
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td width="100%" style="padding-bottom: 15px">
+              <div style="font-size: 12px; color: #777; margin-bottom: 3px">
+                Ödeme Durumu
+              </div>
+              <div
+                style="font-size: 14px; font-weight: 600; {% if order.is_paid %}color: #27ae60;{% else %}color: #e67e22;{% endif %}"
+              >
+                {% if order.is_paid %} ✅ Ödendi {% else %} ⏳ Ödeme Bekleniyor
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td width="100%" style="padding-bottom: 15px">
+              <div style="font-size: 12px; color: #777; margin-bottom: 3px">
+                Teslimat Adresi
+              </div>
+              <div style="font-size: 14px; font-weight: 500; color: #333">
+                {{ order.shipping_address }}
+              </div>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Sipariş Ürünleri -->
+      <div
+        style="
+          background-color: white;
+          border-radius: 8px;
+          padding: 20px;
+          margin-bottom: 20px;
+          border: 1px solid #eee;
+        "
+      >
+        <div
+          style="
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+          "
+        >
+          Sipariş İçeriği
+        </div>
+
+        {% for item in order_items %}
+        <div
+          style="display: block; margin-bottom: {% if not forloop.last %}15px; padding-bottom: 15px; border-bottom: 1px solid #f5f5f5;{% else %}0;{% endif %}"
+        >
+          <table cellpadding="0" cellspacing="0" border="0" width="100%">
+            <tr>
+              <td width="60" valign="top">
+                {% if item.item.product.img_url %}
+                <div
+                  style="
+                    width: 60px;
+                    height: 60px;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    background-color: #f9f9f9;
+                  "
+                >
+                  <img
+                    src="{{ item.product.img_url }}"
+                    alt="{{ item.product.name }}"
+                    style="width: 100%; height: 100%; object-fit: cover"
+                  />
+                </div>
+                {% else %}
+                <div
+                  style="
+                    width: 60px;
+                    height: 60px;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    background-color: #f9f9f9;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  "
+                >
+                  <span style="color: #aaa; font-size: 20px">🧀</span>
+                </div>
+                {% endif %}
+              </td>
+              <td style="padding-left: 15px" valign="top">
+                <div
+                  style="
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #333;
+                    margin-bottom: 5px;
+                  "
+                >
+                  {{ item.item.product.name }}
+                </div>
+                <div style="font-size: 12px; color: #777">
+                  Miktar: {{ item.item.quantity }}
+                </div>
+                <div style="margin-top: 5px">
+                  {% if item.has_discount %}
+                  <span
+                    style="
+                      font-size: 12px;
+                      color: #777;
+                      text-decoration: line-through;
+                    "
+                    >{{ item.original_price }} TL</span
+                  >
+                  <span
+                    style="
+                      font-size: 14px;
+                      font-weight: 600;
+                      color: #e74c3c;
+                      margin-left: 5px;
+                    "
+                    >{{ item.discounted_price }} TL</span
+                  >
+                  <span
+                    style="font-size: 12px; color: #e74c3c; margin-left: 5px"
+                    >(%{{ item.discount_percentage|floatformat:0 }}
+                    indirim)</span
+                  >
+                  {% else %}
+                  <span
+                    style="font-size: 14px; font-weight: 600; color: #e67e22"
+                    >{{ item.item.price }} TL</span
+                  >
+                  {% endif %}
+                </div>
+                <div
+                  style="
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #e67e22;
+                    margin-top: 5px;
+                  "
+                >
+                  Toplam: {{ item.total_price }} TL
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Ödeme Özeti -->
+      <div
+        style="
+          background-color: white;
+          border-radius: 8px;
+          padding: 15px;
+          border: 1px solid #eee;
+        "
+      >
+        <div
+          style="
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+          "
+        >
+          Ödeme Özeti
+        </div>
+
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          <tr>
+            <td
+              align="left"
+              style="padding-bottom: 8px; font-size: 14px; color: #666"
+            >
+              Ara Toplam:
+            </td>
+            <td
+              align="right"
+              style="
+                padding-bottom: 8px;
+                font-size: 14px;
+                color: #333;
+                font-weight: 500;
+              "
+            >
+              {{ order.get_subtotal_price }} TL
+            </td>
+          </tr>
+
+          <tr>
+            <td
+              align="left"
+              style="padding-bottom: 8px; font-size: 14px; color: #666"
+            >
+              Kargo Ücreti:
+            </td>
+            <td
+              align="right"
+              style="
+                padding-bottom: 8px;
+                font-size: 14px;
+                color: #333;
+                font-weight: 500;
+              "
+            >
+              {{ order.shipping_cost }} TL
+            </td>
+          </tr>
+
+          {% if order.discount > 0 %}
+          <tr>
+            <td
+              align="left"
+              style="padding-bottom: 8px; font-size: 14px; color: #666"
+            >
+              İndirim:
+            </td>
+            <td
+              align="right"
+              style="
+                padding-bottom: 8px;
+                font-size: 14px;
+                color: #e67e22;
+                font-weight: 500;
+              "
+            >
+              -{{ order.get_discount }} TL
+            </td>
+          </tr>
+          {% endif %} {% if order.payment_method == 'cash_on_delivery' %}
+          <tr>
+            <td
+              align="left"
+              style="padding-bottom: 8px; font-size: 14px; color: #666"
+            >
+              Kapıda Ödeme Ücreti:
+            </td>
+            <td
+              align="right"
+              style="
+                padding-bottom: 8px;
+                font-size: 14px;
+                color: #333;
+                font-weight: 500;
+              "
+            >
+              {{ order.cod_fee }} TL
+            </td>
+          </tr>
+          {% endif %}
+
+          <tr>
+            <td
+              colspan="2"
+              style="padding-top: 10px; border-top: 1px solid #eee"
+            ></td>
+          </tr>
+
+          <tr>
+            <td
+              align="left"
+              style="
+                padding-top: 10px;
+                font-size: 16px;
+                color: #333;
+                font-weight: 600;
+              "
+            >
+              Toplam:
+            </td>
+            <td
+              align="right"
+              style="
+                padding-top: 10px;
+                font-size: 16px;
+                color: #e67e22;
+                font-weight: 600;
+              "
+            >
+              {{ order.get_total_price }} TL
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Mesaj -->
+  <div style="text-align: center; margin-top: 30px">
+    <p
+      style="color: #666; font-size: 14px; line-height: 1.5; margin-bottom: 5px"
+    >
+      Siparişinizle ilgili herhangi bir sorunuz varsa, lütfen bizimle iletişime
+      geçin.
+    </p>
+    <p style="color: #333; font-size: 16px; font-weight: 600; margin-top: 10px">
+      Kaşarcım Ekibi
+    </p>
+  </div>
+</div>
+{% endblock %}
