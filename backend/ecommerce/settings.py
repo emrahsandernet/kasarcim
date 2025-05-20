@@ -27,7 +27,7 @@ SECRET_KEY = config('SECRET_KEY', default="django-insecure-jmxlyorkuj7v$f-qal9_@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*', cast=lambda v: [s.strip() for s in v.split(',')])
+ALLOWED_HOSTS =['kasarcim.com','localhost','127.0.0.1']
 
 
 # Application definition
