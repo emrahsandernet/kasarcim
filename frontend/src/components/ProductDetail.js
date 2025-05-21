@@ -170,9 +170,9 @@ export default function ProductDetail({ product: initialProduct, slug }) {
             </div>
             
             {/* Başlık */}
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-3 relative inline-block">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-5 relative inline-block">
               {product?.name}
-              <span className="absolute bottom-0 left-0 w-1/4 h-1 bg-orange-500 rounded-full"></span>
+              <span className="absolute bottom-[-4px] left-0 w-1/4 mt-3 h-1 bg-orange-500 rounded-full"></span>
             </h1>
             
             {/* Puanlama */}
@@ -214,7 +214,7 @@ export default function ProductDetail({ product: initialProduct, slug }) {
                 </>
               ) : (
                 <div className="text-2xl sm:text-3xl font-bold text-orange-600 mb-2">
-                  {product?.price?.toLocaleString('tr-TR', {
+                  {parseFloat(product?.price)?.toLocaleString('tr-TR', {
                     style: 'currency',
                     currency: 'TRY',
                   })}
