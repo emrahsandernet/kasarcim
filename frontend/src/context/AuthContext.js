@@ -122,8 +122,9 @@ export function AuthProvider({ children }) {
       Toast.success('Başarıyla giriş yapıldı');
       return true;
     } catch (error) {
-      console.error('Giriş hatası:', error);
-      Toast.error(error.message || 'Giriş yapılamadı');
+      
+     
+      Toast.error('E-posta veya şifreyi hatalı girdiniz!');
       return false;
     } finally {
       setAuthLoading(false);

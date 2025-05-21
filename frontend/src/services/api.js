@@ -36,12 +36,24 @@ export const fetchAPI = async (endpoint, options = {}) => {
       console.warn('API yanıtı JSON olarak ayrıştırılamadı:', error);
     }
   }
+  console.log(endpoint)
   
   if (!response.ok) {
     // API hatası durumunda
     const error = new Error(data.error || data.detail || `API işlemi başarısız (${response.status})`);
     error.data = data;
     error.status = response.status;
+    console.log(endpoint)
+    if (endpoint == "login") {
+      // Login hatalarını özelleştir
+      if (response.status === 400) {
+        error.message = "E-posta adresi veya şifre hatalı. Lütfen tekrar deneyin.";
+      } else if (response.status === 404) {
+        error.message = "Hesap bulunamadı. Lütfen e-posta adresinizi kontrol edin.";
+      } else if (response.status === 401) {
+        error.message = "Oturum açma işlemi başarısız oldu. Lütfen bilgilerinizi kontrol edin.";
+      }
+    }
     throw error;
   }
   
