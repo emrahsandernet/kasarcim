@@ -201,7 +201,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 # Frontend URL
-FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+FRONTEND_URL = config('FRONTEND_URL', default='https://kasarcim.com')
 
 # Celery ayarları
 CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')

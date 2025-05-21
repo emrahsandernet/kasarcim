@@ -181,7 +181,7 @@ class LoginView(ObtainAuthToken):
         # Şifre kontrolü yap
         if not user.check_password(password):
             return Response(
-                {'non_field_errors': ['Hatalı şifre girdiniz.']},
+                {'non_field_errors': ['Hatalı e-posta veya şifre girdiniz.']},
                 status=status.HTTP_400_BAD_REQUEST
             )
         

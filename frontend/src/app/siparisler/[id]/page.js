@@ -625,9 +625,9 @@ export default function OrderDetailPage({ params }) {
                   <div className="flex mb-3">
                     <div className="h-16 w-16 flex-shrink-0 relative rounded-lg overflow-hidden bg-white">
                       {/* Resim olup olmadığını kontrol ederken, null veya undefined kontrolü yapıyoruz */}
-                      {item.product_detail && item.product_detail.image ? (
+                      {item.product_detail && item.product_detail.img_url ? (
                         <img
-                          src={item.product_detail.image || '/images/default-product.jpg'}
+                          src={item.product_detail.img_url || '/images/default-product.jpg'}
                           alt={item.product_detail.name || 'Ürün Görseli'}
                           className="w-full h-full object-contain"
                           onError={(e) => {

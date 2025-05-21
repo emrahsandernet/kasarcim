@@ -22,7 +22,7 @@ services:
       - SECRET_KEY=django-insecure-jmxlyorkuj7v-qal9_@_v3o=_u*y3!0(+kfk7xa^y8uv^e^a
       - DATABASE_URL=postgres://ecommerce_user:ecommerce_pass@postgres:5432/ecommerce
       - ALLOWED_HOSTS=localhost,127.0.0.1
-      - FRONTEND_URL=http://localhost
+      - FRONTEND_URL=https://kasarcim.com
 
   # Frontend servisi
   frontend:
