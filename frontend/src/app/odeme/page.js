@@ -27,7 +27,7 @@ const PaymentPage = () => {
   const [agreeInfoForm, setAgreeInfoForm] = useState(false);
   const [showSalesContract, setShowSalesContract] = useState(false);
   const [showInfoForm, setShowInfoForm] = useState(false);
-  const [isLeavingPage, setIsLeavingPage] = useState(false);
+
 
   useEffect(() => {
     setMounted(true);
@@ -59,28 +59,7 @@ const PaymentPage = () => {
       document.head.removeChild(style);
     };
   }, []);
-  
-  // Sayfadan ayrılma uyarısı
-  useEffect(() => {
-    // Siparişin tamamlanıp tamamlanmadığını izleyen durum
-    const handleBeforeUnload = (e) => {
-      // Eğer işlem yapılıyorsa veya form doldurulmuşsa ve sipariş tamamlanmadıysa
-      if (user && cartItems.length > 0 && selectedAddress && !isLeavingPage) {
-        // Tarayıcı standart uyarı mesajı
-        const message = "Ödeme işleminiz devam ediyor. Sayfadan ayrılırsanız sepetinizdeki ürünler kaybolmayacak ancak sipariş tamamlanmayacaktır. Devam etmek istiyor musunuz?";
-        e.returnValue = message; // Chrome için
-        return message; // Firefox ve diğer tarayıcılar için
-      }
-    };
 
-    if (mounted && user && cartItems.length > 0) {
-      window.addEventListener('beforeunload', handleBeforeUnload);
-    }
-    
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [mounted, user, cartItems, selectedAddress, isLeavingPage]);
   
   // Kullanıcı giriş yapmamışsa login sayfasına yönlendir
   useEffect(() => {
@@ -177,8 +156,7 @@ const PaymentPage = () => {
       // Sepeti temizle
       clearCart();
       
-      // Sipariş tamamlandı sayfasına yönlendirme öncesi ayrılma durumunu güncelle
-      setIsLeavingPage(true);
+  
       
       // Sipariş tamamlandı sayfasına yönlendir - doğrudan yönlendirme yapıyoruz
       const redirectUrl = `/siparis-basarili?orderId=${order.id}&total=${finalTotal}`;

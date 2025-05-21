@@ -5,18 +5,110 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
-import { FaCheckCircle, FaArrowLeft, FaHome, FaBoxOpen } from 'react-icons/fa';
+import { FaCheckCircle, FaArrowLeft, FaHome, FaBoxOpen, FaCopy, FaCheck } from 'react-icons/fa';
 import Loader from '../components/Loader';
+
+// Bildirimlerin giriş/çıkış animasyonları için CSS
+const customStyles = `
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes fadeOut {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+  
+  .animate-fade-in-up {
+    animation: fadeInUp 0.3s ease-out forwards;
+  }
+  
+  .animate-fade-out {
+    animation: fadeOut 0.3s ease-out forwards;
+  }
+`;
 
 export default function SiparisBasariliPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [orderInfo, setOrderInfo] = useState(null);
   const [mounted, setMounted] = useState(false);
+  const [copyingIban, setCopyingIban] = useState(false);
+  
+  // IBAN kopyalama işlevi
+  const copyToClipboard = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopyingIban(true);
+      
+      // Toast bildirimi için tarayıcı API'sini kullanalım
+      if (typeof document !== 'undefined') {
+        const notification = document.createElement('div');
+        notification.className = 'fixed bottom-4 right-4 bg-green-50 text-green-800 px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-up';
+        notification.innerHTML = '<div class="flex items-center"><svg class="w-4 h-4 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>IBAN kopyalandı</div>';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.classList.add('animate-fade-out');
+          setTimeout(() => {
+            if (document.body.contains(notification)) {
+              document.body.removeChild(notification);
+            }
+          }, 500);
+        }, 2000);
+      }
+      
+      // 2 saniye sonra kopyalama durumunu sıfırla
+      setTimeout(() => {
+        setCopyingIban(false);
+      }, 2000);
+    } catch (err) {
+      console.error('Kopyalama başarısız:', err);
+      
+      // Hata bildirimi
+      if (typeof document !== 'undefined') {
+        const notification = document.createElement('div');
+        notification.className = 'fixed bottom-4 right-4 bg-red-50 text-red-800 px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-up';
+        notification.innerHTML = '<div class="flex items-center"><svg class="w-4 h-4 mr-2 text-red-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>Kopyalama başarısız oldu</div>';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.classList.add('animate-fade-out');
+          setTimeout(() => {
+            if (document.body.contains(notification)) {
+              document.body.removeChild(notification);
+            }
+          }, 500);
+        }, 2000);
+      }
+    }
+  };
   
   // Client-side rendering için
   useEffect(() => {
     setMounted(true);
+    
+    // CSS stillerini ekle
+    if (typeof document !== 'undefined') {
+      const style = document.createElement('style');
+      style.textContent = customStyles;
+      document.head.appendChild(style);
+      
+      return () => {
+        document.head.removeChild(style);
+      };
+    }
     
     // URL'den sipariş bilgilerini al
     if (typeof window !== 'undefined') {
@@ -118,7 +210,28 @@ export default function SiparisBasariliPage() {
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-gray-500">IBAN:</p>
-                  <p className="font-medium">TR72 0011 1000 0000 0070 5463 42</p>
+                  <div className="flex flex-col gap-2">
+                    <div className="bg-gray-50 rounded-md p-2">
+                      <p className="font-medium text-sm select-all break-all">TR72 0011 1000 0000 0070 5463 42</p>
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard('TR72 0011 1000 0000 0070 5463 42')}
+                      className="text-xs py-2 px-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded transition-colors flex items-center justify-center w-full"
+                      title="IBAN'ı Kopyala"
+                    >
+                      {copyingIban ? (
+                        <>
+                          <FaCheck className="h-3 w-3 mr-1 text-green-600" />
+                          <span>Kopyalandı</span>
+                        </>
+                      ) : (
+                        <>
+                          <FaCopy className="h-3 w-3 mr-1" />
+                          <span>Kopyala</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

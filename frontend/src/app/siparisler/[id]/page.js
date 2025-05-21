@@ -385,16 +385,29 @@ export default function OrderDetailPage({ params }) {
   };
   
   // Kopyalama işlevi
-  const copyToClipboard = async (text) => {
+  const [copyingIban, setCopyingIban] = useState(false);
+  
+  const copyToClipboard = async (text, type = 'tracking') => {
     try {
       await navigator.clipboard.writeText(text);
-      setCopying(true);
-      toast.success('Takip numarası kopyalandı');
       
-      // 2 saniye sonra kopyalama durumunu sıfırla
-      setTimeout(() => {
-        setCopying(false);
-      }, 2000);
+      if (type === 'tracking') {
+        setCopying(true);
+        toast.success('Takip numarası kopyalandı');
+        
+        // 2 saniye sonra kopyalama durumunu sıfırla
+        setTimeout(() => {
+          setCopying(false);
+        }, 2000);
+      } else if (type === 'iban') {
+        setCopyingIban(true);
+        toast.success('IBAN kopyalandı');
+        
+        // 2 saniye sonra kopyalama durumunu sıfırla
+        setTimeout(() => {
+          setCopyingIban(false);
+        }, 2000);
+      }
     } catch (err) {
       console.error('Kopyalama başarısız:', err);
       toast.error('Kopyalama başarısız oldu');
@@ -896,22 +909,43 @@ export default function OrderDetailPage({ params }) {
                   
                   {/* Banka Havalesi Bilgileri */}
                   {payment.payment_method === 'bank_transfer' && payment.status === 'pending' && (
-                    <div className="mt-3 bg-white border border-gray-200 rounded-lg p-3">
+                                          <div className="mt-3 bg-white border border-gray-200 rounded-lg p-3">
                       <div className="text-sm font-medium text-gray-800 mb-2">Banka Hesap Bilgileri</div>
-                      <div className="grid grid-cols-1 gap-2 text-sm">
-                        <div className="flex justify-between">
+                      <div className="grid grid-cols-1 gap-3 text-sm">
+                        <div className="flex justify-between items-center">
                           <span className="text-gray-500">Banka:</span>
                           <span className="font-medium text-gray-800">Enpara</span>
                         </div>
-                        <div className="flex justify-between">
+                        <div className="flex justify-between items-center">
                           <span className="text-gray-500">Hesap Sahibi:</span>
                           <span className="font-medium text-gray-800">Ramazan Deniz Sağ</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">IBAN:</span>
-                          <span className="font-medium text-xs select-all break-all">TR72 0011 1000 0000 0070 5463 42</span>
+                        <div className="block">
+                          <span className="text-gray-500 block mb-1">IBAN:</span>
+                          <div className="flex flex-col gap-2">
+                            <div className="bg-gray-50 rounded-md p-2">
+                              <span className="font-medium text-xs select-all break-all">TR72 0011 1000 0000 0070 5463 42</span>
+                            </div>
+                            <button
+                              onClick={() => copyToClipboard('TR72 0011 1000 0000 0070 5463 42', 'iban')}
+                              className="text-xs py-2 px-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded transition-colors flex items-center justify-center"
+                              title="IBAN'ı Kopyala"
+                            >
+                              {copyingIban ? (
+                                <>
+                                  <FaCheck className="h-3 w-3 mr-1 text-green-600" />
+                                  <span>Kopyalandı</span>
+                                </>
+                              ) : (
+                                <>
+                                  <FaCopy className="h-3 w-3 mr-1" />
+                                  <span>Kopyala</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
                         </div>
-                        <div className="flex justify-between">
+                        <div className="flex justify-between items-center">
                           <span className="text-gray-500">Açıklama:</span>
                           <span className="font-medium text-gray-800">Sipariş #{order.id + 91185}</span>
                         </div>
