@@ -27,8 +27,8 @@ export default function ProductCard({ product }) {
   
   // Kısaltılmış açıklama metni (ilk 60 karakter)
   const shortDescription = product.description 
-    ? product.description.length > 60 
-      ? `${product.description.substring(0, 60)}...` 
+    ? product.description.length > 300 
+      ? `${product.description.substring(0, 300)}...` 
       : product.description
     : '';
   
@@ -113,7 +113,7 @@ export default function ProductCard({ product }) {
       
       <div className="p-5 relative flex-1 flex flex-col">
         {/* Kategori linki */}
-        <div className="mb-2">
+        <div className="mb-1">
           <Link 
             href={`/kategoriler/${product.category_slug || product.category?.slug}`} 
             className="text-xs text-orange-500 hover:text-orange-600 transition-colors font-medium uppercase tracking-wide"
@@ -123,14 +123,14 @@ export default function ProductCard({ product }) {
         </div>
         
         <Link href={`/urunler/${product.slug}`} className="block group-hover:text-orange-500 transition-colors">
-          <h3 className="text-xl font-bold text-gray-800 line-clamp-2 min-h-[56px]">
+          <h3 className="text-xl font-bold text-gray-800 line-clamp-2 min-h-[36px]">
             {product.name}
         
           </h3>
         </Link>
         
         {/* Kısa açıklama */}
-        <p className="mt-2 text-sm text-gray-600 line-clamp-2 min-h-[40px]">
+        <p className="mt-2 text-sm text-gray-600 line-clamp-20 min-h-[80px] italic">
           {shortDescription}
         </p>
         
