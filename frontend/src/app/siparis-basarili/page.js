@@ -45,6 +45,7 @@ export default function SiparisBasariliPage() {
   const [orderInfo, setOrderInfo] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [copyingIban, setCopyingIban] = useState(false);
+  const [debugInfo, setDebugInfo] = useState({});
   
   // IBAN kopyalama işlevi
   const copyToClipboard = async (text) => {
@@ -109,40 +110,68 @@ export default function SiparisBasariliPage() {
         document.head.removeChild(style);
       };
     }
-    
-    // URL'den sipariş bilgilerini al
-    if (typeof window !== 'undefined') {
-      const searchParams = new URLSearchParams(window.location.search);
-      const orderId = searchParams.get('orderId');
-      const totalAmount = searchParams.get('total');
-      
+  }, []);
+  
+  // URL'den sipariş bilgilerini al - ayrı bir useEffect içinde
+  useEffect(() => {
+    if (typeof window !== 'undefined' && mounted) {
+      try {
+        const searchParams = new URLSearchParams(window.location.search);
+        const orderId = searchParams.get('orderId');
+        const totalAmount = searchParams.get('total');
 
-      
-      if (orderId && orderId !== 'undefined' && orderId !== 'null') {
-        setOrderInfo({
-          id: parseInt(orderId) + 91185,
-          total: totalAmount ? parseFloat(totalAmount) : 0,
+        console.log("URL Parametreleri:", { orderId, totalAmount });
+        
+        // Hata ayıklama bilgileri
+        setDebugInfo({
+          orderId,
+          totalAmount,
+          orderIdType: typeof orderId,
+          isOrderIdTruthy: !!orderId
         });
-      } else {
-        // Sipariş bilgisi yoksa ana sayfaya yönlendir
-        console.warn("Sipariş ID bulunamadı, ana sayfaya yönlendiriliyor");
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 500);
+        
+        // orderId geçerli bir değer mi kontrol et (daha esnek bir kontrol)
+        if (orderId && orderId !== 'undefined' && orderId !== 'null') {
+          const orderIdNum = parseInt(orderId);
+          console.log("İşlenen Sipariş ID:", orderIdNum);
+          
+          if (!isNaN(orderIdNum)) {
+            setOrderInfo({
+              id: orderIdNum + 91185,
+              total: totalAmount ? parseFloat(totalAmount) : 0,
+            });
+          } else {
+            console.error("Sipariş ID sayıya dönüştürülemedi:", orderId);
+          }
+        } else {
+          // 500ms yerine daha uzun bir süre bekle
+          console.warn("Sipariş ID bulunamadı, ana sayfaya yönlendiriliyor");
+          // Yönlendirmeyi kaldıralım, hata mesajı göstermeyi tercih edelim
+          // setTimeout(() => {
+          //   window.location.href = '/';
+          // }, 3000);
+        }
+      } catch (error) {
+        console.error("Sipariş bilgisi işlenirken hata:", error);
       }
     }
-  }, []);
+  }, [mounted]); // mounted değiştiğinde çalışsın
   
   // Kullanıcı giriş yapmamışsa login sayfasına yönlendir
   useEffect(() => {
-    if (mounted && !authLoading && !user) {
-      const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '';
-      const redirectPath = `/login?redirect=${encodeURIComponent(currentPath)}`;
-      window.location.href = redirectPath;
+    if (mounted && !authLoading) {
+      if (!user) {
+        console.log("Kullanıcı giriş yapmamış, login sayfasına yönlendiriliyor");
+        const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '';
+        const redirectPath = `/login?redirect=${encodeURIComponent(currentPath)}`;
+        window.location.href = redirectPath;
+      } else {
+        console.log("Giriş yapılmış kullanıcı:", user);
+      }
     }
   }, [mounted, authLoading, user]);
   
-  if (!mounted || authLoading || !user) {
+  if (!mounted || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center py-16">
         <Loader size="large" />
@@ -155,6 +184,9 @@ export default function SiparisBasariliPage() {
       <div className="min-h-screen flex items-center justify-center py-16">
         <div className="text-center">
           <p className="text-gray-600 mb-4">Sipariş bilgisi bulunamadı.</p>
+          <p className="text-gray-500 mb-4 text-sm">
+            Hata Ayıklama Bilgileri: {JSON.stringify(debugInfo)}
+          </p>
           <Link href="/" className="text-orange-500 hover:text-orange-600 font-medium">
             Ana sayfaya dön
           </Link>
