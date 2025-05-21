@@ -213,7 +213,7 @@ export default function CartPage() {
                       {/* Ürün resmi ve adı */}
                       <div className="w-20 h-20 relative rounded overflow-hidden flex-shrink-0">
                         <Image
-                          src={item.image_url || '/images/placeholder.png'}
+                          src={item.img_url || '/images/placeholder.png'}
                           alt={item.name}
                           fill
                           sizes="80px"
