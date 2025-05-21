@@ -27,8 +27,8 @@ export default function ProductCard({ product }) {
   
   // Kısaltılmış açıklama metni (ilk 60 karakter)
   const shortDescription = product.description 
-    ? product.description.length > 300 
-      ? `${product.description.substring(0, 300)}...` 
+    ? product.description.length > 100 
+      ? `${product.description.substring(0, 100)}...` 
       : product.description
     : '';
   
@@ -123,14 +123,14 @@ export default function ProductCard({ product }) {
         </div>
         
         <Link href={`/urunler/${product.slug}`} className="block group-hover:text-orange-500 transition-colors">
-          <h3 className="text-xl font-bold text-gray-800 line-clamp-2 min-h-[36px]">
+          <h3 className="text-xl font-bold text-gray-800 line-clamp-2 min-h-[46px]">
             {product.name}
         
           </h3>
         </Link>
         
         {/* Kısa açıklama */}
-        <p className="mt-2 text-sm text-gray-600 line-clamp-20 min-h-[80px] italic">
+        <p className="mt-2 text-sm text-gray-600 line-clamp-2 min-h-[80px] italic">
           {shortDescription}
         </p>
         
