@@ -901,15 +901,15 @@ export default function OrderDetailPage({ params }) {
                       <div className="grid grid-cols-1 gap-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-gray-500">Banka:</span>
-                          <span className="font-medium text-gray-800">Ziraat Bankası</span>
+                          <span className="font-medium text-gray-800">Enpara</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-500">Hesap Sahibi:</span>
-                          <span className="font-medium text-gray-800">Kaşarcım Peynir Ltd. Şti.</span>
+                          <span className="font-medium text-gray-800">Ramazan Deniz Sağ</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-500">IBAN:</span>
-                          <span className="font-medium text-xs select-all break-all">TR12 3456 7890 1234 5678 9012 34</span>
+                          <span className="font-medium text-xs select-all break-all">TR72 0011 1000 0000 0070 5463 42</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-500">Açıklama:</span>

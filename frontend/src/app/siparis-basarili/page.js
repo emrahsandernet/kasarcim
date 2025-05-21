@@ -106,19 +106,19 @@ export default function SiparisBasariliPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <p className="text-sm text-gray-500">Banka Adı:</p>
-                  <p className="font-medium">Ziraat Bankası</p>
+                  <p className="font-medium">Enpara</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-gray-500">Şube:</p>
-                  <p className="font-medium">Balgat Şubesi (1234)</p>
+                  <p className="font-medium">Çekmeköy Şubesi (0070)</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-gray-500">Hesap Sahibi:</p>
-                  <p className="font-medium">Kaşarcım Peynir Ltd. Şti.</p>
+                  <p className="font-medium">Ramazan Deniz Sağ</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-gray-500">IBAN:</p>
-                  <p className="font-medium">TR12 3456 7890 1234 5678 9012 34</p>
+                  <p className="font-medium">TR72 0011 1000 0000 0070 5463 42</p>
                 </div>
               </div>
             </div>
