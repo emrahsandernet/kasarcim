@@ -422,153 +422,208 @@ function AddressesContent() {
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                  Adres Başlığı <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="title"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  className="shadow-sm focus:ring-orange-500 focus:border-orange-500 block w-full sm:text-sm border-gray-300 rounded-lg p-2.5 border bg-white transition-all duration-200"
-                  placeholder="Örn: Ev, İş"
-                  required
-                />
+            {/* Adres başlığı ve varsayılan ayarı */}
+            <div className="bg-gradient-to-r from-orange-50 to-white p-5 rounded-lg border border-orange-100 shadow-sm mb-6">
+              <div className="flex items-center mb-4">
+                <div className="p-2 bg-orange-100 rounded-full mr-3">
+                  <FaHome className="text-orange-600 h-4 w-4" />
+                </div>
+                <h3 className="text-md font-semibold text-gray-800">Adres Bilgileri</h3>
               </div>
               
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="is_default"
-                  name="is_default"
-                  checked={formData.is_default}
-                  onChange={handleChange}
-                  className="h-4 w-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
-                />
-                <label htmlFor="is_default" className="ml-2 block text-sm text-gray-700">
-                  Bu adresi varsayılan olarak kaydet
-                </label>
-              </div>
-              
-              <div>
-                <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-1">
-                  Ad
-                </label>
-                <input
-                  type="text"
-                  id="first_name"
-                  name="first_name"
-                  value={formData.first_name}
-                  onChange={handleChange}
-                  className="shadow-sm focus:ring-orange-500 focus:border-orange-500 block w-full sm:text-sm border-gray-300 rounded-lg p-2.5 border bg-white transition-all duration-200"
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-1">
-                  Soyad
-                </label>
-                <input
-                  type="text"
-                  id="last_name"
-                  name="last_name"
-                  value={formData.last_name}
-                  onChange={handleChange}
-                  className="shadow-sm focus:ring-orange-500 focus:border-orange-500 block w-full sm:text-sm border-gray-300 rounded-lg p-2.5 border bg-white transition-all duration-200"
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700 mb-1">
-                  Telefon <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="phone_number"
-                  name="phone_number"
-                  value={formData.phone_number}
-                  onChange={handleChange}
-                  className="shadow-sm focus:ring-orange-500 focus:border-orange-500 block w-full sm:text-sm border-gray-300 rounded-lg p-2.5 border bg-white transition-all duration-200"
-                  placeholder="05XX XXX XX XX"
-                  required
-                />
-              </div>
-              
-              <div className="md:col-span-2">
-                <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-                  Adres <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  id="address"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  rows={3}
-                  className="shadow-sm focus:ring-orange-500 focus:border-orange-500 block w-full sm:text-sm border-gray-300 rounded-lg p-2.5 border bg-white transition-all duration-200"
-                  required
-                ></textarea>
-              </div>
-              
-              <div>
-                <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-                  İl <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="city"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleChange}
-                  className="shadow-sm focus:ring-orange-500 focus:border-orange-500 block w-full sm:text-sm border-gray-300 rounded-lg p-2.5 border bg-white transition-all duration-200"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="district" className="block text-sm font-medium text-gray-700 mb-1">
-                  İlçe <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="district"
-                  name="district"
-                  value={formData.district}
-                  onChange={handleChange}
-                  className="shadow-sm focus:ring-orange-500 focus:border-orange-500 block w-full sm:text-sm border-gray-300 rounded-lg p-2.5 border bg-white transition-all duration-200"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="postal_code" className="block text-sm font-medium text-gray-700 mb-1">
-                  Posta Kodu
-                </label>
-                <input
-                  type="text"
-                  id="postal_code"
-                  name="postal_code"
-                  value={formData.postal_code}
-                  onChange={handleChange}
-                  className="shadow-sm focus:ring-orange-500 focus:border-orange-500 block w-full sm:text-sm border-gray-300 rounded-lg p-2.5 border bg-white transition-all duration-200"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+                    Adres Başlığı <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    className="shadow-sm focus:ring-orange-500 focus:border-orange-500 block w-full sm:text-sm border-gray-300 rounded-lg p-3 border bg-white transition-all duration-200"
+                    placeholder="Örn: Ev, İş"
+                    required
+                  />
+                </div>
+                
+                <div className="flex items-center">
+                  <div className="relative flex items-start mt-6">
+                    <div className="flex items-center h-5">
+                      <input
+                        type="checkbox"
+                        id="is_default"
+                        name="is_default"
+                        checked={formData.is_default}
+                        onChange={handleChange}
+                        className="h-5 w-5 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                      />
+                    </div>
+                    <div className="ml-3 text-sm">
+                      <label htmlFor="is_default" className="font-medium text-gray-700">
+                        Bu adresi varsayılan olarak kaydet
+                      </label>
+                   
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             
+            {/* Kişi bilgileri */}
+            <div className="bg-gradient-to-r from-blue-50 to-white p-5 rounded-lg border border-blue-100 shadow-sm mb-6">
+              <div className="flex items-center mb-4">
+                <div className="p-2 bg-blue-100 rounded-full mr-3">
+                  <FaUser className="text-blue-600 h-4 w-4" />
+                </div>
+                <h3 className="text-md font-semibold text-gray-800">Kişi Bilgileri</h3>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-1">
+                    Ad
+                  </label>
+                  <input
+                    type="text"
+                    id="first_name"
+                    name="first_name"
+                    value={formData.first_name}
+                    onChange={handleChange}
+                    className="shadow-sm focus:ring-orange-500 focus:border-orange-500 block w-full sm:text-sm border-gray-300 rounded-lg p-3 border bg-white transition-all duration-200"
+                    placeholder="Adınız"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-1">
+                    Soyad
+                  </label>
+                  <input
+                    type="text"
+                    id="last_name"
+                    name="last_name"
+                    value={formData.last_name}
+                    onChange={handleChange}
+                    className="shadow-sm focus:ring-orange-500 focus:border-orange-500 block w-full sm:text-sm border-gray-300 rounded-lg p-3 border bg-white transition-all duration-200"
+                    placeholder="Soyadınız"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700 mb-1">
+                    Telefon <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span className="text-gray-500 sm:text-sm">+90</span>
+                    </div>
+                    <input
+                      type="text"
+                      id="phone_number"
+                      name="phone_number"
+                      value={formData.phone_number}
+                      onChange={handleChange}
+                      className="pl-12 shadow-sm focus:ring-orange-500 focus:border-orange-500 block w-full sm:text-sm border-gray-300 rounded-lg p-3 border bg-white transition-all duration-200"
+                      placeholder="5XX XXX XX XX"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Adres detayları */}
+            <div className="bg-gradient-to-r from-green-50 to-white p-5 rounded-lg border border-green-100 shadow-sm mb-6">
+              <div className="flex items-center mb-4">
+                <div className="p-2 bg-green-100 rounded-full mr-3">
+                  <FaMapMarkerAlt className="text-green-600 h-4 w-4" />
+                </div>
+                <h3 className="text-md font-semibold text-gray-800">Adres Detayları</h3>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
+                    Açık Adres <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    id="address"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    rows={3}
+                    className="shadow-sm focus:ring-orange-500 focus:border-orange-500 block w-full sm:text-sm border-gray-300 rounded-lg p-3 border bg-white transition-all duration-200"
+                    placeholder="Mahalle, Sokak, Apartman ve Daire No gibi detayları girin"
+                    required
+                  ></textarea>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
+                      İl <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="city"
+                      name="city"
+                      value={formData.city}
+                      onChange={handleChange}
+                      className="shadow-sm focus:ring-orange-500 focus:border-orange-500 block w-full sm:text-sm border-gray-300 rounded-lg p-3 border bg-white transition-all duration-200"
+                      placeholder="Örn: İstanbul"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="district" className="block text-sm font-medium text-gray-700 mb-1">
+                      İlçe <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="district"
+                      name="district"
+                      value={formData.district}
+                      onChange={handleChange}
+                      className="shadow-sm focus:ring-orange-500 focus:border-orange-500 block w-full sm:text-sm border-gray-300 rounded-lg p-3 border bg-white transition-all duration-200"
+                      placeholder="Örn: Kadıköy"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="postal_code" className="block text-sm font-medium text-gray-700 mb-1">
+                      Posta Kodu
+                    </label>
+                    <input
+                      type="text"
+                      id="postal_code"
+                      name="postal_code"
+                      value={formData.postal_code}
+                      onChange={handleChange}
+                      className="shadow-sm focus:ring-orange-500 focus:border-orange-500 block w-full sm:text-sm border-gray-300 rounded-lg p-3 border bg-white transition-all duration-200"
+                      placeholder="Örn: 34000"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Butonlar */}
             <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
               <button
                 type="button"
                 onClick={resetForm}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all duration-200"
+                className="inline-flex items-center px-4 py-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all duration-200"
               >
                 İptal
               </button>
               <button
                 type="submit"
                 disabled={processing}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 transition-all duration-200"
+                className="inline-flex items-center px-4 py-3 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 transition-all duration-200 hover:scale-105"
               >
                 {processing ? (
                   <>
