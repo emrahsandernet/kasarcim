@@ -27,20 +27,32 @@ export default function LoginModal({ onClose }) {
       calculatePasswordStrength(value);
     }
     
-    // Şifre eşleşmesini kontrol et
-    if (!isLogin && (name === 'confirmPassword' || (name === 'password' && formData.confirmPassword))) {
-      if (name === 'password' && value !== formData.confirmPassword) {
-        setErrors(prev => ({ ...prev, confirmPassword: 'Şifreler eşleşmiyor' }));
-      } else if (name === 'confirmPassword' && value !== formData.password) {
+    // Temizle hata mesajını
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  // Blur event handler ekliyoruz
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    
+    // Şifre eşleşmesi kontrolü sadece blur eventinde yapılacak
+    if (!isLogin && name === 'confirmPassword' && formData.password) {
+      if (value !== formData.password) {
         setErrors(prev => ({ ...prev, confirmPassword: 'Şifreler eşleşmiyor' }));
       } else {
         setErrors(prev => ({ ...prev, confirmPassword: '' }));
       }
     }
     
-    // Temizle hata mesajını
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+    // Şifre alanından çıkıldığında ve confirmPassword alanı doldurulmuşsa kontrol et
+    if (!isLogin && name === 'password' && formData.confirmPassword) {
+      if (value !== formData.confirmPassword) {
+        setErrors(prev => ({ ...prev, confirmPassword: 'Şifreler eşleşmiyor' }));
+      } else {
+        setErrors(prev => ({ ...prev, confirmPassword: '' }));
+      }
     }
   };
 
@@ -98,7 +110,7 @@ export default function LoginModal({ onClose }) {
     }
     
     if (!isLogin) {
-      // Şifre eşleşme kontrolü
+      // Şifre eşleşme kontrolü - form submit edilirken mutlaka kontrol edilmeli
       if (formData.password !== formData.confirmPassword) {
         newErrors.confirmPassword = 'Şifreler eşleşmiyor';
       }
@@ -194,6 +206,7 @@ export default function LoginModal({ onClose }) {
                       id="email"
                       value={formData.email}
                       onChange={handleChange}
+                      onBlur={handleBlur}
                       className={`mt-1 block w-full px-3 py-2 bg-white border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
                     />
                     {errors.email && (
@@ -264,6 +277,7 @@ export default function LoginModal({ onClose }) {
                       id="password"
                       value={formData.password}
                       onChange={handleChange}
+                      onBlur={handleBlur}
                       className={`mt-1 block w-full px-3 py-2 bg-white border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
                     />
                     {!isLogin && formData.password && (
@@ -295,6 +309,7 @@ export default function LoginModal({ onClose }) {
                         id="confirmPassword"
                         value={formData.confirmPassword}
                         onChange={handleChange}
+                        onBlur={handleBlur}
                         className={`mt-1 block w-full px-3 py-2 bg-white border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
                       />
                       {errors.confirmPassword && (

@@ -124,7 +124,7 @@ const AuthService = {
   // Şifre sıfırlama onayı
   confirmPasswordReset: async (token, password, password2) => {
     try {
-      return await api.post('password-reset/confirm/', {
+      return await api.post('password-reset-confirm/', {
         token,
         password,
         password2
