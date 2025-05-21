@@ -1,17 +1,32 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import Toast from '@/components/Toast';
+import toast from 'react-hot-toast';
 import { CartService } from '@/services';
+import Image from 'next/image';
+import { FaShoppingCart, FaInfoCircle, FaExclamationTriangle, FaTimesCircle, FaTag } from 'react-icons/fa';
+import { useRouter } from 'next/navigation';
 
 export const CartContext = createContext();
 
 export function CartProvider({ children }) {
+  const router = useRouter();
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [couponCode, setCouponCode] = useState('');
   const [discount, setDiscount] = useState(0);
   const [couponLoading, setCouponLoading] = useState(false);
+  
+  // Ortak toast stilleri
+  const toastStyle = {
+    background: 'linear-gradient(to right, #FFF7ED, #FFF8F1)',
+    boxShadow: '0 8px 30px rgba(255, 107, 0, 0.15)',
+    padding: '16px',
+    borderRadius: '14px',
+    border: '1px solid rgba(255, 107, 0, 0.2)',
+    width: 'auto',
+    maxWidth: '420px',
+  };
   
   // LocalStorage'dan sepeti yükle
   useEffect(() => {
@@ -45,6 +60,11 @@ export function CartProvider({ children }) {
     }
   }, [cartItems, couponCode, discount, loading]);
   
+  // Sepet sayfasına yönlendirme yapacak fonksiyon
+  const navigateToCart = () => {
+    router.push('/sepet');
+  };
+  
   // Sepete ürün ekle
   const addToCart = (product, quantity = 1) => {
     // Sepet state'ini güncellemeden önce yeni state'i hazırlayalım
@@ -72,7 +92,49 @@ export function CartProvider({ children }) {
     setCartItems(newCartItems);
     localStorage.setItem('cartItems', JSON.stringify(newCartItems));
     
-    Toast.success(`${product.name} sepete eklendi`);
+    // Modern toast ile bildirimi göster
+    toast((t) => (
+      <div className="flex flex-col w-full relative">
+        <div className="flex items-start w-full ">
+          {product.img_url && (
+            <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0 mr-2">
+              <Image 
+                src={product.img_url || "/images/placeholder.png"} 
+                alt={product.name}
+                width={32}
+                height={32}
+                className="object-cover w-full h-full"
+              />
+            </div>
+          )}
+          <div className="flex-grow">
+            <div className="text-sm font-medium text-orange-700">{product.name} sepete eklendi</div>
+            <div className="text-xs text-orange-500">{quantity} adet</div>
+          </div>
+        </div>
+        <button
+          onClick={() => {
+            toast.dismiss(t.id);
+            navigateToCart();
+          }}
+          className="absolute top-6 right-0 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm py-1.5 px-4 rounded-full hover:from-orange-600 hover:to-orange-700 transition-all duration-200 shadow-sm"
+        >
+          <div className="flex items-center">
+            <FaShoppingCart className="mr-1.5 text-xs" />
+            Sepete Git
+          </div>
+        </button>
+      </div>
+    ), {
+      duration: 3000,
+      style: {
+        ...toastStyle,
+        padding: '12px',
+        paddingBottom: '28px' // Buton için daha az alan
+      },
+      position: 'bottom-right',
+      icon: null,
+    });
   };
   
   // Sepetten ürün kaldır
@@ -87,7 +149,11 @@ export function CartProvider({ children }) {
     localStorage.setItem('cartItems', JSON.stringify(newCartItems));
     
     if (productToRemove) {
-      Toast.info(`${productToRemove.name} sepetten çıkarıldı`);
+      toast.success(`${productToRemove.name} sepetten çıkarıldı`, {
+        icon: <FaInfoCircle className="text-orange-500" />,
+        style: toastStyle,
+        position: 'bottom-right',
+      });
     }
   };
   
@@ -121,20 +187,48 @@ export function CartProvider({ children }) {
     localStorage.removeItem('coupon');
     localStorage.removeItem('discount');
     
-    Toast.info('Sepetiniz temizlendi');
+    toast.success('Sepetiniz temizlendi', {
+      icon: <FaInfoCircle className="text-orange-500" />,
+      style: toastStyle,
+      position: 'bottom-right',
+    });
   };
   
   // Kupon kodunu uygula
   const applyCoupon = async (code) => {
     if (!code || code.trim() === '') {
-      Toast.warning('Lütfen geçerli bir kupon kodu girin');
+      toast((t) => (
+        <div className="flex items-center">
+          <FaExclamationTriangle className="text-yellow-500 mr-2" />
+          <span className="text-yellow-700">Lütfen geçerli bir kupon kodu girin</span>
+        </div>
+      ), {
+        style: {
+          ...toastStyle,
+          background: 'linear-gradient(to right, #FFFBEB, #FEF9C3)',
+          border: '1px solid rgba(245, 158, 11, 0.2)',
+        },
+        position: 'bottom-right',
+      });
       return;
     }
     
     // Token kontrolü
     const token = localStorage.getItem('token');
     if (!token) {
-      Toast.error('Kupon uygulamak için giriş yapmalısınız');
+      toast((t) => (
+        <div className="flex items-center">
+          <FaTimesCircle className="text-red-500 mr-2" />
+          <span className="text-red-700">Kupon uygulamak için giriş yapmalısınız</span>
+        </div>
+      ), {
+        style: {
+          ...toastStyle,
+          background: 'linear-gradient(to right, #FEF2F2, #FFF1F1)',
+          border: '1px solid rgba(239, 68, 68, 0.2)',
+        },
+        position: 'bottom-right',
+      });
       return;
     }
     
@@ -153,7 +247,19 @@ export function CartProvider({ children }) {
       localStorage.setItem('coupon', code);
       localStorage.setItem('discount', data.discount_amount || 0);
       
-      Toast.success(`${code} kuponu başarıyla uygulandı! ${data.discount_amount} TL indirim kazandınız.`);
+      toast((t) => (
+        <div className="flex items-center">
+          <FaTag className="text-orange-500 mr-2" />
+          <div>
+            <div className="text-sm font-medium text-orange-700">{code} kuponu başarıyla uygulandı!</div>
+            <div className="text-xs text-orange-500">{data.discount_amount} TL indirim kazandınız</div>
+          </div>
+        </div>
+      ), {
+        style: toastStyle,
+        position: 'bottom-right',
+        duration: 4000,
+      });
     } catch (error) {
       console.error('Kupon uygulama hatası:', error);
       
@@ -171,7 +277,19 @@ export function CartProvider({ children }) {
         errorMessage = error.message;
       }
       
-      Toast.error(errorMessage);
+      toast((t) => (
+        <div className="flex items-center">
+          <FaTimesCircle className="text-red-500 mr-2" />
+          <span className="text-red-700">{errorMessage}</span>
+        </div>
+      ), {
+        style: {
+          ...toastStyle,
+          background: 'linear-gradient(to right, #FEF2F2, #FFF1F1)',
+          border: '1px solid rgba(239, 68, 68, 0.2)',
+        },
+        position: 'bottom-right',
+      });
     } finally {
       setCouponLoading(false);
     }
@@ -184,7 +302,11 @@ export function CartProvider({ children }) {
     localStorage.removeItem('coupon');
     localStorage.removeItem('discount');
     
-    Toast.info('Kupon kodu kaldırıldı');
+    toast.success('Kupon kodu kaldırıldı', {
+      icon: <FaInfoCircle className="text-orange-500" />,
+      style: toastStyle,
+      position: 'bottom-right',
+    });
   };
   
   // Sepet toplamını hesapla (indirimli fiyatları kullanarak)

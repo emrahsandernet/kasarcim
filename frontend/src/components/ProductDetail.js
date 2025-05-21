@@ -3,23 +3,32 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { FaArrowLeft, FaCartPlus, FaStar, FaCheck, FaInfoCircle, FaShippingFast, FaRegCreditCard, FaShieldAlt } from 'react-icons/fa';
+import { useRouter } from 'next/navigation';
+import { FaArrowLeft, FaCartPlus, FaStar, FaCheck, FaInfoCircle, FaShippingFast, FaRegCreditCard, FaShieldAlt, FaBolt, FaShoppingCart } from 'react-icons/fa';
 import { useCart } from '@/context/CartContext';
 import ProductRating from '@/components/ProductRating';
 import ProductReviews from '@/components/ProductReviews';
-import Toast from '@/components/Toast';
 import { ProductService, api } from '@/services';
 import Loader from '@/components/Loader';
+import toast from 'react-hot-toast';
 
 export default function ProductDetail({ product: initialProduct, slug }) {
   const { addToCart } = useCart();
+  const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [buyingNow, setBuyingNow] = useState(false);
   const [refreshProduct, setRefreshProduct] = useState(false);
   const [activeTab, setActiveTab] = useState('details'); // 'details' | 'reviews'
   const [product, setProduct] = useState(initialProduct);
   const [userHasReviewed, setUserHasReviewed] = useState(false);
   const [loading, setLoading] = useState(!initialProduct);
+  
+  // Sayfa yüklendiğinde en üste kaydır
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const formatWeight = (weightInGrams) => {
     if (!weightInGrams) return '';
     
@@ -92,6 +101,10 @@ export default function ProductDetail({ product: initialProduct, slug }) {
     }
   }, [slug]);
   
+  const navigateToCart = () => {
+    router.push('/sepet');
+  };
+  
   const handleAddToCart = () => {
     if (!product || product.stock <= 0) return;
     
@@ -100,16 +113,39 @@ export default function ProductDetail({ product: initialProduct, slug }) {
     try {
       // Context API'deki addToCart fonksiyonunu çağır
       addToCart(product, quantity);
-      Toast.success('Ürün sepete eklendi');
       
-      // Sepete eklendikten sonra sepet sayfasına yönlendirebilirsiniz (isteğe bağlı)
-      // router.push('/sepet');
+    
+      
     } catch (error) {
       console.error('Sepete ekleme hatası:', error);
-      Toast.error('Ürün sepete eklenirken hata oluştu');
+      toast.error('Ürün sepete eklenirken hata oluştu');
     } finally {
       setTimeout(() => {
         setAddingToCart(false);
+      }, 500);
+    }
+  };
+  
+  const handleBuyNow = () => {
+    if (!product || product.stock <= 0) return;
+    
+    setBuyingNow(true);
+    
+    try {
+      // Önce sepete ekle
+      addToCart(product, quantity);
+      
+      // Sonra ödeme sayfasına yönlendir
+      setTimeout(() => {
+        router.push('/odeme');
+      }, 300);
+      
+    } catch (error) {
+      console.error('Hemen al işleminde hata:', error);
+      toast.error('İşlem sırasında bir hata oluştu');
+    } finally {
+      setTimeout(() => {
+        setBuyingNow(false);
       }, 500);
     }
   };
@@ -266,31 +302,59 @@ export default function ProductDetail({ product: initialProduct, slug }) {
                 </button>
               </div>
               
-              <button 
-                onClick={handleAddToCart}
-                disabled={!product?.stock || addingToCart}
-                className={`flex-1 ${product?.stock > 0 ? 'bg-orange-500 hover:bg-orange-600 transform hover:-translate-y-1' : 'bg-gray-400 cursor-not-allowed'} 
-                           text-white py-3 px-4 sm:px-6 rounded-lg font-semibold flex items-center justify-center
-                           transition-all duration-300 shadow-md hover:shadow-lg relative overflow-hidden`}
-              >
-                {addingToCart ? (
-                  <div className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Ekleniyor...
-                  </div>
-                ) : (
-                  <>
-                    <FaCartPlus className="mr-2 text-lg" /> 
-                    {product?.stock > 0 ? 'Sepete Ekle' : 'Stokta Yok'}
-                  </>
-                )}
-                {product?.stock > 0 && !addingToCart && (
-                  <span className="absolute w-full h-full top-0 left-0 bg-white opacity-20 transform -translate-x-full animate-shine"></span>
-                )}
-              </button>
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+                <button 
+                  onClick={handleAddToCart}
+                  disabled={!product?.stock || addingToCart || buyingNow}
+                  className={`${product?.stock > 0 ? 'bg-orange-500 hover:bg-orange-600 transform hover:-translate-y-1' : 'bg-gray-400 cursor-not-allowed'} 
+                            text-white py-3 px-4 sm:px-6 rounded-lg font-semibold flex items-center justify-center
+                            transition-all duration-300 shadow-md hover:shadow-lg relative overflow-hidden`}
+                >
+                  {addingToCart ? (
+                    <div className="flex items-center">
+                      <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span className="text-sm sm:text-base">Ekleniyor...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <FaCartPlus className="mr-2 text-lg" /> 
+                      <span className="text-sm sm:text-base">{product?.stock > 0 ? 'Sepete Ekle' : 'Stokta Yok'}</span>
+                    </>
+                  )}
+                  {product?.stock > 0 && !addingToCart && (
+                    <span className="absolute w-full h-full top-0 left-0 bg-white opacity-20 transform -translate-x-full animate-shine-first"></span>
+                  )}
+                </button>
+                
+                <button 
+                  onClick={handleBuyNow}
+                  disabled={!product?.stock || addingToCart || buyingNow}
+                  className={`${product?.stock > 0 ? 'bg-green-600 hover:bg-green-700 transform hover:-translate-y-1' : 'bg-gray-400 cursor-not-allowed'} 
+                            text-white py-3 px-4 sm:px-6 rounded-lg font-semibold flex items-center justify-center
+                            transition-all duration-300 shadow-md hover:shadow-lg relative overflow-hidden`}
+                >
+                  {buyingNow ? (
+                    <div className="flex items-center">
+                      <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span className="text-sm sm:text-base">Hazırlanıyor...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <FaBolt className="mr-2 text-lg" /> 
+                      <span className="text-sm sm:text-base">{product?.stock > 0 ? 'Hemen Al' : 'Stokta Yok'}</span>
+                    </>
+                  )}
+                  {product?.stock > 0 && !buyingNow && (
+                    <span className="absolute w-full h-full top-0 left-0 bg-white opacity-20 transform -translate-x-full animate-shine-second"></span>
+                  )}
+                </button>
+              </div>
             </div>
             
             {/* Teslimat Bilgileri */}
@@ -458,7 +522,15 @@ export default function ProductDetail({ product: initialProduct, slug }) {
                           slug={slug} 
                           onRatingChange={() => {
                             setRefreshProduct(true);
-                            Toast.success('Puanınız kaydedildi, ürün puanları güncelleniyor...');
+                            toast.success('Puanınız kaydedildi, ürün puanları güncelleniyor...', {
+                              style: {
+                                background: 'linear-gradient(to right, #FFF7ED, #FFF8F1)',
+                                borderLeft: '5px solid #FF6B00',
+                                boxShadow: '0 8px 30px rgba(255, 107, 0, 0.15)',
+                                color: '#c2410c',
+                                padding: '16px'
+                              }
+                            });
                           }} 
                         />
                       </div>
@@ -479,6 +551,7 @@ export default function ProductDetail({ product: initialProduct, slug }) {
           </div>
         </div>
       </div>
+      
       {/* Animasyon için CSS */}
       <style jsx global>{`
         @keyframes shine {
@@ -486,8 +559,13 @@ export default function ProductDetail({ product: initialProduct, slug }) {
             transform: translateX(100%);
           }
         }
-        .animate-shine {
-          animation: shine 1.5s infinite;
+        .animate-shine-first {
+          animation: shine 3s infinite;
+          animation-delay: 0s;
+        }
+        .animate-shine-second {
+          animation: shine 3s infinite;
+          animation-delay: 1.5s;
         }
       `}</style>
     </div>
