@@ -20,6 +20,15 @@ export default function ProductDetail({ product: initialProduct, slug }) {
   const [product, setProduct] = useState(initialProduct);
   const [userHasReviewed, setUserHasReviewed] = useState(false);
   const [loading, setLoading] = useState(!initialProduct);
+  const formatWeight = (weightInGrams) => {
+    if (!weightInGrams) return '';
+    
+    if (weightInGrams >= 1000) {
+      return `${(weightInGrams / 1000).toLocaleString('tr-TR')} kg`;
+    } else {
+      return `${weightInGrams.toLocaleString('tr-TR')} g`;
+    }
+  };
 
   useEffect(() => {
     if (!initialProduct) {
@@ -220,7 +229,7 @@ export default function ProductDetail({ product: initialProduct, slug }) {
                   })}
                 </div>
               )}
-              <div className="text-sm text-gray-500">Ağırlık: {product?.weight || '500g'}</div>
+              <div className="text-sm text-gray-500">Ağırlık: {formatWeight(product?.weight) || '500g'}</div>
             </div>
             
             {/* Stok Durumu */}
