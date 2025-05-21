@@ -106,6 +106,9 @@ function AddressesContent() {
       // Formu sıfırla ve kapat
       resetForm();
       
+      // Sayfayı yukarı kaydır
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
       // Varsa geri dönüş URL'sine yönlendir
       if (returnUrl) {
         router.push(returnUrl);
@@ -314,6 +317,10 @@ function AddressesContent() {
                   onClick={() => {
                     resetForm();
                     setFormVisible(true);
+                    // Form görünür olduktan sonra forma odaklan
+                    setTimeout(() => {
+                      document.getElementById('addressForm').scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
                   }}
                   className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all duration-200"
                 >
@@ -331,13 +338,17 @@ function AddressesContent() {
               <div className="py-12 text-center">
                 <FaMapMarkerAlt className="mx-auto h-12 w-12 text-gray-300" />
                 <p className="mt-4 text-gray-500">Henüz hiç adresiniz bulunmuyor.</p>
-                <button 
-                  onClick={() => {
-                    resetForm();
-                    setFormVisible(true);
-                  }}
-                  className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all duration-200"
-                >
+                              <button 
+                onClick={() => {
+                  resetForm();
+                  setFormVisible(true);
+                  // Form görünür olduktan sonra forma odaklan
+                  setTimeout(() => {
+                    document.getElementById('addressForm').scrollIntoView({ behavior: 'smooth' });
+                  }, 100);
+                }}
+                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all duration-200"
+              >
                   <FaPlus className="-ml-1 mr-2 h-4 w-4" />
                   Yeni Adres Ekle
                 </button>

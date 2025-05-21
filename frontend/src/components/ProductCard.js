@@ -142,17 +142,26 @@ export default function ProductCard({ product }) {
               <>
                 <div className="font-bold text-2xl text-orange-600 mr-2 flex items-center">
                   <FaLiraSign className="h-4 w-4 mr-1 text-orange-600" />
-                  {discountedPrice.toLocaleString('tr-TR')}
+                  {discountedPrice.toLocaleString('tr-TR',{
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                  })}
                 </div>
                 <div className="text-sm text-gray-500 line-through flex items-center">
                   <FaLiraSign className="h-3 w-3 mr-0.5 text-gray-500" />
-                  {originalPrice.toLocaleString('tr-TR')}
+                  {originalPrice.toLocaleString('tr-TR',{
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                  })}
                 </div>
               </>
             ) : (
               <div className="font-bold text-2xl text-orange-600 flex items-center">
                 <FaLiraSign className="h-4 w-4 mr-1 text-orange-600" />
-                {originalPrice.toLocaleString('tr-TR')}
+                {originalPrice.toLocaleString('tr-TR',{
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
+                })}
               </div>
             )}
             
