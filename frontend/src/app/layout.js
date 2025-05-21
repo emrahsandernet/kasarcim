@@ -9,10 +9,17 @@ import { Toaster } from 'react-hot-toast';
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  metadataBase: new URL("https://www.kasarcim.com"), // ✅ Domainini buraya ekledik
+  metadataBase: new URL("https://www.kasarcim.com"),
   title: "Kaşarcım - Türkiye'nin En Lezzetli ve Organik Kaşar Peyniri",
   description: "Türkiye'nin en kaliteli ve organik peynir çeşitleri, lezzetli kaşar peynirleri ve süt ürünleri",
-  image: "/images/kasarcim-logo-icon.svg",
+  images: [
+    {
+      url: "https://www.kasarcim.com/images/kasar-hero.png",
+      width: 1200,
+      height: 630,
+      alt: "Kaşarcım"
+    }
+  ],
   alternates: {
     canonical: "/",
   },
@@ -22,9 +29,16 @@ export const metadata = {
     nocache: false,
   },
   openGraph: {
-    title: "Kaşarcım - Türkiye'nin En Lezzetli ve Kaşar Peyniri",
+    title: "Kaşarcım - Türkiye'nin En Lezzetli ve Organik Kaşar Peyniri",
     description: "Doğal süt ve geleneksel yöntemlerle üretilen eşsiz tadıyla peynir çeşitleri. Sizin için özenle hazırlanıp gönderiliyor.",
-    images: ["/images/kasarcim-logo-icon.svg"],
+    images: [
+      {
+        url: "https://cdn.kasarcim.com/727b287e1370e7bc_logo.png",
+        width: 1200,
+        height: 630,
+        alt: "Kaşarcım"
+      }
+    ],
     type: "website",
     locale: "tr_TR",
     siteName: "Kaşarcım"
@@ -49,7 +63,14 @@ export const metadata = {
     creator: "@kasarcim",
     title: "Kaşarcım - Türkiye'nin En Lezzetli Kaşar Peyniri",
     description: "Organik süt ve geleneksel yöntemlerle üretilen eşsiz tadıyla peynir çeşitleri. Sizin için özenle hazırlanıp gönderiliyor.",
-    images: ["/images/kasarcim-logo-icon.svg"],
+    images: [
+      {
+        url: "https://cdn.kasarcim.com/727b287e1370e7bc_logo.png",
+        width: 1200,
+        height: 630,
+        alt: "Kaşarcım"
+      }
+    ],
   },
 };
 
@@ -66,7 +87,7 @@ export default function RootLayout({ children }) {
               "@type": "Organization",
               name: "Kaşarcım",
               url: "https://www.kasarcim.com",
-              logo: "https://www.kasarcim.com/images/kasarcim-logo-icon.svg",
+              logo: "https://cdn.kasarcim.com/727b287e1370e7bc_logo.png",
               sameAs: [
                 "https://facebook.com/kasarcim",
                 "https://instagram.com/kasarcim",
