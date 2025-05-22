@@ -91,6 +91,22 @@ export function CartProvider({ children }) {
     // State'i güncelle
     setCartItems(newCartItems);
     localStorage.setItem('cartItems', JSON.stringify(newCartItems));
+    // 👉 GA4 / GTM için add_to_cart eventi gönder
+    if (typeof window !== 'undefined' && window.dataLayer) {
+      window.dataLayer.push({
+        event: 'add_to_cart',
+        ecommerce: {
+          items: [
+            {
+              item_name: product.name,
+              item_id: product.id,
+              price: product.currentPrice,
+              quantity: quantity
+            }
+          ]
+        }
+      });
+    }
     
     // Modern toast ile bildirimi göster
     toast((t) => (
