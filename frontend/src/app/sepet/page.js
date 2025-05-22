@@ -378,6 +378,23 @@ export default function CartPage() {
               <div className="mt-4 sm:mt-6">
                 <Link 
                   href="/odeme" 
+                  onClick={() => {
+                    if (typeof window !== "undefined" && window.dataLayer) {
+                      window.dataLayer.push({
+                        event: "begin_checkout",
+                        ecommerce: {
+                          items: cartItems.map((item) => ({
+                            item_id: item.id,
+                            item_name: item.name,
+                            price: item.currentPrice || item.price,
+                            quantity: item.quantity,
+                            item_brand: "Kaşarcım",
+                            item_category: item.category_name || item.category?.name || "Peynir"
+                          }))
+                        }
+                      });
+                    }
+                  }}
                   className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 sm:py-3 px-4 rounded-md font-semibold flex items-center justify-center text-sm sm:text-base transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg"
                 >
                   <FaCreditCard className="mr-2" />
