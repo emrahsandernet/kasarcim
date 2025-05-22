@@ -56,7 +56,7 @@ INSTALLED_APPS = [
     "announcements",
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -181,7 +181,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
+        
     ],
     # Varsayılan olarak kimlik doğrulama iste, istisnalar view seviyesinde tanımlanmalı
     'DEFAULT_PERMISSION_CLASSES': [

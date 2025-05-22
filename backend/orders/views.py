@@ -10,7 +10,7 @@ from coupons.models import Coupon
 from users.models import Address
 from .serializers import OrderSerializer, OrderItemSerializer, OrderItemCreateSerializer, ShipmentSerializer
 from django.utils import timezone
-from rest_framework.permissions import AllowAny, IsAuthenticated
+
 
 class IsAuthenticatedOrCreateOnly(permissions.BasePermission):
     """
@@ -67,28 +67,51 @@ class OrderViewSet(viewsets.ModelViewSet):
         items_data = data.get('items', [])
         coupon_code = data.get('coupon_code')
         notes = data.get('notes', '')
-        
-        # Debug için gelen verilerin tipini kontrol et
-        print(f"Gelen total_price: {data.get('total_price')} - Tipi: {type(data.get('total_price'))}")
-        
-        # Ödeme metodunu al
         payment_method = data.get('payment_method', 'online')
         if payment_method not in ['online', 'cash_on_delivery']:
-            payment_method = 'online'  # Geçersiz değer için varsayılan
-            
-        # Kullanıcı oturum açtıysa adres kontrolü yap
+            payment_method = 'online'
+
         user = request.user if request.user.is_authenticated else None
-        
         from decimal import Decimal
-        
+
+        # Ürünleri getir ve toplam tutarı hesapla
+        total_price = Decimal('0')
+        products = {}
+        for item in items_data:
+            product_id = item.get('product_id')
+            quantity = item.get('quantity', 1)
+            try:
+                product = Product.objects.get(id=product_id)
+                products[product_id] = product
+                total_price += product.price * Decimal(quantity)
+            except Product.DoesNotExist:
+                return Response({'error': f'Ürün bulunamadı: {product_id}'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # İndirim hesapla
+        discount = Decimal('0')
+        applied_coupon = None
+        if coupon_code:
+            try:
+                coupon = Coupon.objects.get(code=coupon_code)
+                if coupon.is_valid and total_price >= coupon.min_purchase_amount:
+                    if coupon.discount_type == 'percentage':
+                        discount = total_price * (Decimal(str(coupon.discount_value)) / Decimal('100'))
+                    else:
+                        discount = min(Decimal(str(coupon.discount_value)), total_price)
+                    applied_coupon = coupon
+            except Coupon.DoesNotExist:
+                pass  # Geçersiz kupon varsa yoksay
+
+        final_price = total_price - discount
+
+        # Kayıtlı kullanıcı
         if user:
-            # Kayıtlı kullanıcı için adres kontrolü
             address_id = data.get('address_id')
             try:
                 address = Address.objects.get(id=address_id, user=user)
             except Address.DoesNotExist:
                 return Response({'error': 'Geçersiz adres.'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
             order_data = {
                 'user': user,
                 'first_name': address.first_name,
@@ -100,24 +123,32 @@ class OrderViewSet(viewsets.ModelViewSet):
                 'country': address.country,
                 'phone_number': address.phone_number,
                 'payment_method': payment_method,
-                'total_price': Decimal(str(data.get('total_price', 0))),
-                'discount': Decimal(str(data.get('discount', 0))),
-                'final_price': Decimal(str(data.get('final_price', 0))),
+                'total_price': total_price,
+                'discount': discount,
+                'final_price': final_price,
                 'notes': notes,
-                    'is_guest_order': False,
-                }
+                'is_guest_order': False,
+            }
+
         else:
-            # Misafir kullanıcı için adres bilgileri
+            # Misafir kullanıcı
             guest_info = data.get('guest_info', {})
             if not guest_info:
                 return Response({'error': 'Misafir kullanıcı bilgileri eksik.'}, status=status.HTTP_400_BAD_REQUEST)
-                
-            # Ad soyadı parçala
+
             full_name = guest_info.get('full_name', '')
             name_parts = full_name.split(' ', 1)
             first_name = name_parts[0]
             last_name = name_parts[1] if len(name_parts) > 1 else ''
-            
+
+            required_fields = ['full_name', 'email', 'phone', 'address', 'city', 'district']
+            missing_fields = [field for field in required_fields if not guest_info.get(field)]
+            if missing_fields:
+                return Response({
+                    'error': 'Eksik bilgiler mevcut.',
+                    'missing_fields': missing_fields
+                }, status=status.HTTP_400_BAD_REQUEST)
+
             order_data = {
                 'user': None,
                 'first_name': first_name,
@@ -129,69 +160,44 @@ class OrderViewSet(viewsets.ModelViewSet):
                 'country': 'Türkiye',
                 'phone_number': guest_info.get('phone', ''),
                 'payment_method': payment_method,
-                'total_price': Decimal(str(data.get('total_price', 0))),
-                'discount': Decimal(str(data.get('discount', 0))),
-                'final_price': Decimal(str(data.get('final_price', 0))),
+                'total_price': total_price,
+                'discount': discount,
+                'final_price': final_price,
                 'notes': notes,
                 'is_guest_order': True,
                 'guest_email': guest_info.get('email', ''),
             }
-            
-            # Gerekli alanların kontrolü
-            required_fields = ['full_name', 'email', 'phone', 'address', 'city', 'district']
-            missing_fields = [field for field in required_fields if not guest_info.get(field)]
-            
-            if missing_fields:
-                return Response({
-                    'error': 'Eksik bilgiler mevcut.',
-                    'missing_fields': missing_fields
-                }, status=status.HTTP_400_BAD_REQUEST)
-        
+
+        # Sipariş ve sipariş ürünlerini oluştur
         try:
             with transaction.atomic():
-                # Sipariş oluştur
                 order = Order.objects.create(**order_data)
-                
-                # Sipariş öğelerini ekle
-                for item_data in items_data:
-                    product_id = item_data.get('product_id')
-                    quantity = item_data.get('quantity')
-                    price = item_data.get('price')
-                    
-                    try:
-                        product = Product.objects.get(id=product_id)
-                    except Product.DoesNotExist:
-                        raise ValueError(f"Ürün bulunamadı: {product_id}")
-                    
+                for item in items_data:
+                    product_id = item.get('product_id')
+                    quantity = item.get('quantity', 1)
+                    product = products.get(product_id)
+                    if not product:
+                        raise ValueError("Ürün daha önce alınamamış.")
+
                     OrderItem.objects.create(
                         order=order,
                         product=product,
-                        price=Decimal(str(price)),
+                        price=product.price,
                         quantity=quantity
                     )
-                
-                # Kupon varsa ekle
-                if coupon_code:
-                    try:
-                        coupon = Coupon.objects.get(code=coupon_code)
-                        if coupon.is_valid:
-                            order.coupon = coupon
-                            coupon.usage_count += 1
-                            coupon.save()
-                    except Coupon.DoesNotExist:
-                        pass  # Kupon yoksa devam et
-                
-                order.save()
-                
+
+                # Kuponu uygula
+                if applied_coupon:
+                    order.coupon = applied_coupon
+                    applied_coupon.usage_count += 1
+                    applied_coupon.save()
+                    order.save()
+
                 serializer = OrderSerializer(order)
-                
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
-                
-        except ValueError as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
         except Exception as e:
             return Response({'error': f'Sipariş oluşturulurken bir hata oluştu: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
     @action(detail=True, methods=['post'])
     def add_item(self, request, pk=None):
         order = self.get_object()
