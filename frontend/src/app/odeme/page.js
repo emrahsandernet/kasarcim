@@ -1094,8 +1094,7 @@ const PaymentPage = () => {
                 </div>
                 
                 <div 
-                  className={`border-2 ${paymentMethod === 'credit_card' ? 'border-orange-500 bg-orange-50' : 'border-gray-200'} rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-md`}
-                  onClick={() => setPaymentMethod('credit_card')}
+                  className={`border-2 border-gray-200 rounded-xl overflow-hidden opacity-60 bg-gray-50`}
                 >
                   <input 
                     type="radio" 
@@ -1103,28 +1102,24 @@ const PaymentPage = () => {
                     name="payment-method" 
                     value="credit_card"
                     checked={paymentMethod === 'credit_card'} 
-                    onChange={() => setPaymentMethod('credit_card')}
+                    onChange={() => {}} 
                     className="hidden" 
+                    disabled
                   />
-                  <label htmlFor="credit-card" className="block cursor-pointer">
+                  <label htmlFor="credit-card" className="block">
                     <div className="px-5 py-4 flex items-center justify-between">
                       <div className="flex items-center">
-                        <div className="rounded-full bg-orange-100 p-3 mr-4">
-                          <FaRegCreditCard className="text-orange-500 text-2xl" />
+                        <div className="rounded-full bg-gray-200 p-3 mr-4">
+                          <FaRegCreditCard className="text-gray-500 text-2xl" />
                     </div>
                         <div>
-                          <h3 className="font-medium text-lg">Kredi Kartı</h3>
-                          <p className="text-gray-600 text-sm">
+                          <h3 className="font-medium text-lg">Kredi Kartı<span className="ml-2 text-sm text-gray-500">(Çok yakında)</span></h3>
+                          <p className="text-gray-500 text-sm">
                             Güvenli ödeme altyapımız ile bütün kartlar desteklenir
                           </p>
+                      </div>
                   </div>
-                  </div>
-                      <div className={`h-6 w-6 border-2 rounded-full ${paymentMethod === 'credit_card' ? 'border-orange-500 bg-orange-500' : 'border-gray-300'}`}>
-                        {paymentMethod === 'credit_card' && (
-                          <div className="h-full w-full flex items-center justify-center">
-                            <FaCheck className="text-white text-xs" />
-                          </div>
-                        )}
+                      <div className="h-6 w-6 border-2 rounded-full border-gray-300">
                       </div>
                     </div>
                   </label>
