@@ -124,7 +124,27 @@ export default function OrderDetailPage({ params }) {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mounted, user, id, router]);
-
+  const pushRefundEvent = (order) => {
+    if (typeof window === 'undefined') return;
+  
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: "refund",
+      ecommerce: {
+        transaction_id: order.id.toString(),
+        value: order.final_price || 0,
+        currency: "TRY",
+        items: order.items.map(item => ({
+          item_id: item.product_detail?.id?.toString() || item.id.toString(),
+          item_name: item.product_detail?.name || "Ürün",
+          quantity: item.quantity,
+          price: item.price,
+        }))
+      }
+    });
+  
+   
+  };
   // Sipariş iptal etme fonksiyonu
   const handleCancelOrder = async () => {
     if (!confirm('Bu siparişi iptal etmek istediğinize emin misiniz?')) {
@@ -138,6 +158,12 @@ export default function OrderDetailPage({ params }) {
       const data = await OrderService.cancelOrder(id, 'Müşteri tarafından iptal edildi');
       console.log("İptal yanıtı:", data);
       toast.success('Siparişiniz başarıyla iptal edildi');
+
+      // 🚀 Refund Event tetikle
+      if (order && order.status === 'delivered') {
+        pushRefundEvent(order);
+      }
+
       
       // İptal sonrası güncel sipariş detaylarını al
       try {

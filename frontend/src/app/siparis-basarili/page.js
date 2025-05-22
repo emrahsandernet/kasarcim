@@ -90,8 +90,8 @@ export default function SiparisBasariliPage() {
     if (typeof window === 'undefined') return;
     if (!orderInfo) return;
   
-    // localStorage içinden sepet bilgilerini al
-    const cart = JSON.parse(localStorage.getItem("cartItems") || "[]");
+      // localStorage içinden sepet bilgilerini al
+      const cart = JSON.parse(localStorage.getItem("cartItems") || "[]");
   
       // GA4 için purchase event'ini gönder
       window.dataLayer = window.dataLayer || [];

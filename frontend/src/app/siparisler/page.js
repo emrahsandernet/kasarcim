@@ -54,7 +54,27 @@ export default function OrdersPage() {
       fetchOrders();
     }
   }, [mounted, user]);
+  const handleRefund = (order) => {
+    if (typeof window === 'undefined') return;
   
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: "refund",
+      ecommerce: {
+        transaction_id: order.id.toString(),
+        value: order.final_price,
+        currency: "TRY",
+        items: order.items.map((item) => ({
+          item_id: item.product_detail?.id?.toString() || item.id.toString(),
+          item_name: item.product_detail?.name || 'Ürün',
+          quantity: item.quantity,
+          price: item.price,
+        })),
+      },
+    });
+  
+    console.log("Refund event gönderildi:", order.id);
+  };
   // Sipariş iptal etme fonksiyonu
   const handleCancelOrder = async (orderId) => {
     if (!confirm('Bu siparişi iptal etmek istediğinize emin misiniz?')) {
@@ -72,6 +92,9 @@ export default function OrdersPage() {
       
       // Siparişleri güncelle (api'den dönen veriden al)
       if (responseData.order) {
+        if (responseData.order.status === 'returned' && responseData.order.delivered_at) {
+          handleRefund(responseData.order); // 🚨 Burada iade event'ini tetikliyoruz
+        }
         setOrders(orders.map(order => 
           order.id === orderId ? { 
             ...order, 
