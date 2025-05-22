@@ -4,6 +4,8 @@ import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
 import Navbar from '@/components/Navbar';
 import Footer from "@/components/Footer";
+import AnnouncementBar from "@/components/AnnouncementBar";
+import WhatsAppButton from "@/components/WhatsAppButton";
 import { Toaster } from 'react-hot-toast';
 
 const inter = Inter({ subsets: ["latin"] });
@@ -101,9 +103,11 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <CartProvider>
             <div className="min-h-screen flex flex-col">
+              <AnnouncementBar />
               <Navbar />
               <main className="flex-grow">{children}</main>
               <Footer />
+              <WhatsAppButton />
             </div>
             <Toaster
               position="bottom-right"

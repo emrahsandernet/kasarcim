@@ -57,7 +57,7 @@ urlpatterns = [
     path('api/coupons/check/', check_coupon, name='check-coupon'),
     path('api/password-reset/', csrf_exempt(PasswordResetRequestView.as_view()), name='password-reset'),
     path('api/password-reset-confirm/', csrf_exempt(PasswordResetConfirmView.as_view()), name='password-reset-confirm'),
-   
+    path('', include('announcements.urls')),
 ]
 
 if settings.DEBUG:

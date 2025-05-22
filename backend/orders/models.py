@@ -18,14 +18,14 @@ class Order(models.Model):
         ('cash_on_delivery', 'Kapıda Ödeme'),
     )
     
-    user = models.ForeignKey(User, related_name='orders', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='orders', on_delete=models.CASCADE, null=True, blank=True)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     email = models.EmailField()
     address = models.TextField()
     city = models.CharField(max_length=100)
-    postal_code = models.CharField(max_length=20)
-    country = models.CharField(max_length=100)
+    postal_code = models.CharField(max_length=20, blank=True, null=True)
+    country = models.CharField(max_length=100, default='Türkiye')
     phone_number = models.CharField(max_length=15)
     status = models.CharField(max_length=10, choices=ORDER_STATUS, default='created')
     coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, blank=True, null=True, related_name='orders')
@@ -38,13 +38,17 @@ class Order(models.Model):
     notes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_guest_order = models.BooleanField(default=False)
+    guest_email = models.EmailField(blank=True, null=True)
     
     class Meta:
         verbose_name_plural = 'Siparişler'
         ordering = ('-created_at',)
         
     def __str__(self):
-        return f"Sipariş {self.id} - {self.user.username}"
+        if self.user:
+            return f"Sipariş {self.id} - {self.user.username}"
+        return f"Sipariş {self.id} - Misafir ({self.email})"
         
     @property
     def shipping_address(self):
@@ -75,13 +79,13 @@ class Order(models.Model):
         from decimal import Decimal
         # Kargo ücreti kontrolü
         if self.total_price < Decimal('1500'):
-            self.shipping_cost = Decimal('250.00')
+            self.shipping_cost = Decimal('100.00')
         else:
             self.shipping_cost = Decimal('0.00')
         
         # Kapıda ödeme ücreti
         if self.payment_method == 'cash_on_delivery':
-            self.cod_fee = Decimal('50.00')
+            self.cod_fee = Decimal('30.00')
         else:
             self.cod_fee = Decimal('0.00')
             

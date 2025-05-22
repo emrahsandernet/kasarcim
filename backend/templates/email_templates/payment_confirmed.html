@@ -35,9 +35,8 @@ Onaylandı{% endblock %} {% block content %}
     </div>
     <p style="color: #666; font-size: 16px; line-height: 1.5">
       Merhaba
-      <span style="font-weight: 600; color: #333"
-        >{{ user.first_name|default:user.username }}</span
-      >, <strong>#{{ order_id }}</strong> numaralı siparişiniz için ödemeniz
+      <span style="font-weight: 600; color: #333">{{ user_name }}</span>,
+      <strong>#{{ order_id }}</strong> numaralı siparişiniz için ödemeniz
       onaylandı ve siparişiniz hazırlanmaya başladı.
     </p>
   </div>

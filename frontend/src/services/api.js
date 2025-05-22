@@ -1,7 +1,5 @@
 // API için temel yapılandırma dosyası
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost/api';
-
-
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:90/api';
 
 // Temel fetch işlemi için yardımcı fonksiyon
 export const fetchAPI = async (endpoint, options = {}) => {
@@ -22,40 +20,50 @@ export const fetchAPI = async (endpoint, options = {}) => {
     headers
   };
   
-  const response = await fetch(`${API_URL}/${endpoint}`, config);
+  const fullUrl = `${API_URL}/${endpoint}`;
 
-  
-  // DELETE istekleri için boş yanıt durumunu kontrol et
-  let data = {};
-  const contentType = response.headers.get('content-type');
-  if (contentType && contentType.includes('application/json')) {
-    try {
-      data = await response.json();
-    } catch (error) {
-      // Boş yanıt veya geçersiz JSON durumunda
-      console.warn('API yanıtı JSON olarak ayrıştırılamadı:', error);
+  try {
+    const response = await fetch(fullUrl, config);
+    
+    // DELETE istekleri için boş yanıt durumunu kontrol et
+    let data = {};
+    const contentType = response.headers.get('content-type');
+    
+    if (contentType && contentType.includes('application/json')) {
+      try {
+        data = await response.json();
+      } catch (error) {
+        // Boş yanıt veya geçersiz JSON durumunda
+        console.warn('API yanıtı JSON olarak ayrıştırılamadı:', error);
+      }
     }
-  }
-  console.log(endpoint)
-  
-  if (!response.ok) {
-    // API hatası durumunda
-    const error = new Error(data.error || data.detail || `API işlemi başarısız (${response.status})`);
-    error.data = data;
-    error.status = response.status;
-    console.log(endpoint)
-    if (endpoint == "coupons/apply/") {
-      // Login hatalarını özelleştir
-      if (response.status === 400) {
-        error.message = "Geçersiz kupon kodu.";
-      } else if (response.status === 404) {
-        error.message = "Kupon kodu bulunamadı.";
-      } 
+    
+    if (!response.ok) {
+      // API hatası durumunda
+      let errorMessage = data.error || data.detail || `API işlemi başarısız (${response.status})`;
+      if (endpoint === 'coupons/apply/' ) {
+        errorMessage = "Kupon kodu geçersiz.";
+      }
+      
+      const error = new Error(errorMessage);
+      error.response = { 
+        status: response.status,
+        data: data,
+        headers: Object.fromEntries([...response.headers])
+      };
+      
+      throw error;
+    }
+    
+    return data;
+  } catch (error) {
+    // Network hatası durumunda
+    if (!error.response) {
+      console.error('Network hatası:', error.message);
+      error.isNetworkError = true;
     }
     throw error;
   }
-  
-  return data;
 };
 
 // HTTP metodları için yardımcı fonksiyonlar

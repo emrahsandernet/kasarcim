@@ -332,11 +332,11 @@ export default function ContactContent() {
               <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2 text-center">Bizi Ziyaret Edin</h2>
               <p className="text-gray-600 mb-6 text-center">Peynir dünyasını keşfetmek için mağazamıza bekleriz.</p>
               <div className="w-full h-80 rounded-xl overflow-hidden border border-gray-200 shadow-sm">
-                <iframe
+              <iframe
                   title="Kaşarcım Harita"
-                  src="https://www.google.com/maps?q=Kaşar+Sokak+No:123,+Peynir+Mahallesi,+İstanbul&output=embed"
+                  src="https://www.google.com/maps?q=Soğukpınar,+Güleser+Sk.+No:4,+34788+Çekmeköy/İstanbul&output=embed"
                   width="100%"
-                  height="100%"
+                  height="400"
                   style={{ border: 0 }}
                   allowFullScreen=""
                   loading="lazy"

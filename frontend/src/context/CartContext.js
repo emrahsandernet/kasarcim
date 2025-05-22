@@ -213,25 +213,6 @@ export function CartProvider({ children }) {
       return;
     }
     
-    // Token kontrolü
-    const token = localStorage.getItem('token');
-    if (!token) {
-      toast((t) => (
-        <div className="flex items-center">
-          <FaTimesCircle className="text-red-500 mr-2" />
-          <span className="text-red-700">Kupon uygulamak için giriş yapmalısınız</span>
-        </div>
-      ), {
-        style: {
-          ...toastStyle,
-          background: 'linear-gradient(to right, #FEF2F2, #FFF1F1)',
-          border: '1px solid rgba(239, 68, 68, 0.2)',
-        },
-        position: 'bottom-right',
-      });
-      return;
-    }
-    
     // Kupon yükleme durumunu başlat
     setCouponLoading(true);
     
@@ -323,7 +304,7 @@ export function CartProvider({ children }) {
   );
   
   // Kargo ücretini hesapla
-  const shippingCost = cartTotal < 1500 ? 250 : 0;
+  const shippingCost = cartTotal < 1500 ? 100 : 0;
   
   // İndirimli toplam tutarı hesapla
   const discountedTotal = Math.max(0, cartTotal - discount);

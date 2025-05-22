@@ -52,6 +52,12 @@ export default function ProductCard({ product }) {
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Ürün stokta yoksa işlem yapma
+    if (!isInStock) {
+      return;
+    }
+    
     setIsAdding(true);
     
     // Sepete ekleme animasyonu
@@ -176,14 +182,16 @@ export default function ProductCard({ product }) {
         </div>
           
         {/* Sepete ekle butonu - sabit pozisyonlu */}
-        <div 
+        <button 
           onClick={handleAddToCart}
           disabled={isAdding || !isInStock}
+          aria-label="Sepete Ekle"
+          type="button"
           className={`absolute bottom-5 right-5 rounded-full shadow-md transition-all duration-300
             ${isAdding || showSuccess ? 'w-12 h-12' : 'w-11 h-11'}
-            ${showSuccess ? 'bg-green-500 text-white' : 'bg-orange-500 hover:bg-orange-600 text-white'}
-            ${!isInStock ? 'opacity-50 cursor-not-allowed' : ''} 
-            flex items-center justify-center`}
+            ${showSuccess ? 'bg-green-500 text-white' : isInStock ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-gray-400 text-white'}
+            ${!isInStock ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} 
+            flex items-center justify-center border-0`}
         >
           {isAdding ? (
             <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -195,7 +203,7 @@ export default function ProductCard({ product }) {
           ) : (
             <FaCartPlus className="h-5 w-5 text-white" />
           )}
-        </div>
+        </button>
       </div>
     </div>
   );

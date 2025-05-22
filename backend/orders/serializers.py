@@ -187,16 +187,16 @@ class OrderSerializer(serializers.ModelSerializer):
         # Kargo ücretini hesapla
         total_price = validated_data.get('total_price', Decimal('0'))
         
-        # 1500 TL'den az ise kargo ücreti 250 TL, değilse ücretsiz
+        # 1500 TL'den az ise kargo ücreti 100 TL, değilse ücretsiz
         if total_price < Decimal('1500'):
-            shipping_cost = Decimal('250.00')
+            shipping_cost = Decimal('100.00')
         else:
             shipping_cost = Decimal('0.00')
             
         # Kapıda ödeme ücreti hesapla
         payment_method = validated_data.get('payment_method', 'online')
         if payment_method == 'cash_on_delivery':
-            cod_fee = Decimal('50.00')
+            cod_fee = Decimal('30.00')
         else:
             cod_fee = Decimal('0.00')
             
@@ -219,16 +219,16 @@ class OrderSerializer(serializers.ModelSerializer):
         # Fiyat hesaplamaları
         total_price = validated_data.get('total_price', instance.total_price)
         
-        # 1500 TL'den az ise kargo ücreti 250 TL, değilse ücretsiz
+        # 1500 TL'den az ise kargo ücreti 100 TL, değilse ücretsiz
         if total_price < Decimal('1500'):
-            shipping_cost = Decimal('250.00')
+            shipping_cost = Decimal('100.00')
         else:
             shipping_cost = Decimal('0.00')
             
         # Kapıda ödeme ücreti hesapla
         payment_method = validated_data.get('payment_method', instance.payment_method)
         if payment_method == 'cash_on_delivery':
-            cod_fee = Decimal('50.00')
+            cod_fee = Decimal('30.00')
         else:
             cod_fee = Decimal('0.00')
             

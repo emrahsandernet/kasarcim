@@ -16,7 +16,7 @@ class CouponViewSet(viewsets.ModelViewSet):
     serializer_class = CouponSerializer
     permission_classes = [permissions.IsAdminUser]
     
-    @action(detail=False, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny])
     def apply(self, request):
         serializer = CouponApplySerializer(data=request.data)
         if serializer.is_valid():

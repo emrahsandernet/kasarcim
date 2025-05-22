@@ -209,20 +209,21 @@ export default function RegisterPage() {
                 {errors.email && (
                   <p className="mt-1 text-sm text-red-500">{errors.email}</p>
                 )}
-                <p className="mt-1 text-xs text-gray-500">Kullanıcı adınız e-posta adresinizden otomatik oluşturulacaktır</p>
+               
               </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-                  Ad
+                  Ad <span className="text-red-500">*</span>
                 </label>
                 <div className="mt-1">
                   <input
                     id="firstName"
                     name="firstName"
                     type="text"
+                    required
                     value={formData.firstName}
                     onChange={handleChange}
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
@@ -232,13 +233,14 @@ export default function RegisterPage() {
               
               <div>
                 <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                  Soyad
+                  Soyad <span className="text-red-500">*</span>
                 </label>
                 <div className="mt-1">
                   <input
                     id="lastName"
                     name="lastName"
                     type="text"
+                    required
                     value={formData.lastName}
                     onChange={handleChange}
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
@@ -249,23 +251,26 @@ export default function RegisterPage() {
             
             <div>
               <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">
-                Telefon Numarası
+                Telefon
               </label>
-              <div className="mt-1">
+              <div className="mt-1 relative flex items-stretch border border-gray-300 rounded-md overflow-hidden focus-within:border-orange-500 focus-within:ring-1 focus-within:ring-orange-500">
+                <div className="flex items-center justify-center px-3 bg-gray-50 border-r border-gray-300">
+                  <span className="text-gray-500 text-sm font-medium">+90</span>
+                </div>
                 <input
                   id="phoneNumber"
-                  name="phoneNumber"
+                  name="phoneNumber" 
                   type="tel"
-                  placeholder="5xx xxx xx xx"
                   value={formData.phoneNumber}
                   onChange={handleChange}
-                  className={`appearance-none block w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm ${errors.phoneNumber ? 'border-red-500' : 'border-gray-300'}`}
+                  className={`block w-full py-2 px-3 border-none focus:outline-none focus:ring-0 text-sm ${errors.phoneNumber ? 'bg-red-50' : ''}`}
+                  placeholder="5XX XXX XX XX"
                 />
-                {errors.phoneNumber && (
-                  <p className="mt-1 text-sm text-red-500">{errors.phoneNumber}</p>
-                )}
-                <p className="mt-1 text-xs text-gray-500">Başında 0 olmadan, 10 haneli olarak girin</p>
               </div>
+              {errors.phoneNumber && (
+                <p className="mt-1 text-sm text-red-500">{errors.phoneNumber}</p>
+              )}
+             
             </div>
 
             <div>
@@ -356,7 +361,6 @@ export default function RegisterPage() {
             
             <div className="text-center text-xs text-gray-500 mt-4">
               <p><span className="text-red-500">*</span> işaretli alanlar zorunludur</p>
-              <p className="mt-1">Sadece e-posta ve şifre alanları zorunludur, diğer alanlar opsiyoneldir.</p>
             </div>
           </form>
         </div>

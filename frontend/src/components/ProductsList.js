@@ -333,7 +333,7 @@ export default function ProductsList() {
               <div className="relative flex-grow">
                 <input
                   type="text"
-                  placeholder="Ürün adı, açıklama veya kategori ara..."
+                  placeholder="Ürün adı veya kategori ara..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full border border-gray-300 rounded-l-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"

@@ -5,9 +5,24 @@ const OrderService = {
   // Sipariş oluştur
   createOrder: async (orderData) => {
     try {
-      return await api.post('orders/', orderData);
+      console.log('API isteği gönderiliyor:', orderData);
+      const response = await api.post('orders/', orderData);
+      console.log('API yanıtı:', response);
+      return response;
     } catch (error) {
       console.error('Sipariş oluşturma hatası:', error);
+      
+      // Hata detaylarını daha iyi görmek için
+      if (error.response) {
+        console.error('Hata yanıtı:', error.response.data);
+        console.error('Hata durumu:', error.response.status);
+        console.error('Hata başlıkları:', error.response.headers);
+      } else if (error.request) {
+        console.error('İstek hatası (yanıt alınamadı):', error.request);
+      } else {
+        console.error('İstek kurulum hatası:', error.message);
+      }
+      
       throw error;
     }
   },

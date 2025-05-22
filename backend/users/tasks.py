@@ -89,7 +89,25 @@ def send_order_created_email(order_id, user_id):
     from django.utils import timezone
     try:
         order = Order.objects.get(id=order_id)
-        user = User.objects.get(id=user_id)
+        
+        # Misafir sipariş kontrolü (user_id=0)
+        if user_id == 0:
+            # Misafir siparişi için sipariş bilgilerini kullan
+            user_email = order.email
+            user_name = f"{order.first_name} {order.last_name}"
+            is_guest = True
+        else:
+            # Kayıtlı kullanıcı siparişi
+            try:
+                user = User.objects.get(id=user_id)
+                user_email = user.email
+                user_name = f"{user.first_name} {user.last_name}"
+                if not user_name.strip():
+                    user_name = user.username
+                is_guest = False
+            except User.DoesNotExist:
+                print(f"Kullanıcı bulunamadı (ID: {user_id})")
+                return False
         
         payment_url = f"{settings.FRONTEND_URL}/siparis/{order.id}"
         
@@ -126,11 +144,12 @@ def send_order_created_email(order_id, user_id):
         
         # HTML içeriği hazırla
         html_message = render_to_string('email_templates/order_created.html', {
-            'user': user,
+            'user_name': user_name,
+            'is_guest': is_guest,
             'order': order,
             'order_items': order_items,
             'payment_url': payment_url,
-            'email': user.email,
+            'email': user_email,
             'order_id': order.id + 91185,
             'base_image_url': base_image_url,
         })
@@ -146,7 +165,7 @@ def send_order_created_email(order_id, user_id):
             subject=subject,
             body=plain_message,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[user.email]
+            to=[user_email]
         )
         msg.attach_alternative(html_message, "text/html")
         msg.encoding = 'utf-8'
@@ -164,7 +183,25 @@ def send_payment_confirmed_email(order_id, user_id):
     from django.utils import timezone
     try:
         order = Order.objects.get(id=order_id)
-        user = User.objects.get(id=user_id)
+        
+        # Misafir sipariş kontrolü (user_id=0)
+        if user_id == 0:
+            # Misafir siparişi için sipariş bilgilerini kullan
+            user_email = order.email
+            user_name = f"{order.first_name} {order.last_name}"
+            is_guest = True
+        else:
+            # Kayıtlı kullanıcı siparişi
+            try:
+                user = User.objects.get(id=user_id)
+                user_email = user.email
+                user_name = f"{user.first_name} {user.last_name}"
+                if not user_name.strip():
+                    user_name = user.username
+                is_guest = False
+            except User.DoesNotExist:
+                print(f"Kullanıcı bulunamadı (ID: {user_id})")
+                return False
         
         order_detail_url = f"{settings.FRONTEND_URL}/orders/{order.id}"
         
@@ -201,11 +238,12 @@ def send_payment_confirmed_email(order_id, user_id):
         
         # HTML içeriği hazırla
         html_message = render_to_string('email_templates/payment_confirmed.html', {
-            'user': user,
+            'user_name': user_name,
+            'is_guest': is_guest,
             'order': order,
             'order_items': order_items,
             'order_detail_url': order_detail_url,
-            'email': user.email,
+            'email': user_email,
             'base_image_url': base_image_url,
             'order_id': order.id + 91185,
         })
@@ -221,7 +259,7 @@ def send_payment_confirmed_email(order_id, user_id):
             subject=subject,
             body=plain_message,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[user.email]
+            to=[user_email]
         )
         msg.attach_alternative(html_message, "text/html")
         msg.encoding = 'utf-8'
@@ -239,7 +277,25 @@ def send_order_shipped_email(order_id, user_id):
     from django.utils import timezone
     try:
         order = Order.objects.get(id=order_id)
-        user = User.objects.get(id=user_id)
+        
+        # Misafir sipariş kontrolü (user_id=0)
+        if user_id == 0:
+            # Misafir siparişi için sipariş bilgilerini kullan
+            user_email = order.email
+            user_name = f"{order.first_name} {order.last_name}"
+            is_guest = True
+        else:
+            # Kayıtlı kullanıcı siparişi
+            try:
+                user = User.objects.get(id=user_id)
+                user_email = user.email
+                user_name = f"{user.first_name} {user.last_name}"
+                if not user_name.strip():
+                    user_name = user.username
+                is_guest = False
+            except User.DoesNotExist:
+                print(f"Kullanıcı bulunamadı (ID: {user_id})")
+                return False
         
         try:
             shipment = Shipment.objects.get(order=order)
@@ -286,14 +342,15 @@ def send_order_shipped_email(order_id, user_id):
         
         # HTML içeriği hazırla
         html_message = render_to_string('email_templates/order_shipped.html', {
-            'user': user,
+            'user_name': user_name,
+            'is_guest': is_guest,
             'order': order,
             'order_items': order_items,
             'tracking_number': tracking_number,
             'tracking_url': tracking_url,
             'shipping_company': shipping_company,
             'estimated_delivery': estimated_delivery,
-            'email': user.email,
+            'email': user_email,
             'order_id': order.id + 91185,
             'base_image_url': base_image_url,
         })
@@ -309,7 +366,7 @@ def send_order_shipped_email(order_id, user_id):
             subject=subject,
             body=plain_message,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[user.email]
+            to=[user_email]
         )
         msg.attach_alternative(html_message, "text/html")
         msg.encoding = 'utf-8'

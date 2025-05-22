@@ -10,10 +10,23 @@ from coupons.models import Coupon
 from users.models import Address
 from .serializers import OrderSerializer, OrderItemSerializer, OrderItemCreateSerializer, ShipmentSerializer
 from django.utils import timezone
+from rest_framework.permissions import AllowAny, IsAuthenticated
+
+class IsAuthenticatedOrCreateOnly(permissions.BasePermission):
+    """
+    Kullanıcı giriş yapmışsa tam erişim sağlar.
+    Giriş yapmamış kullanıcılar sadece sipariş oluşturabilir.
+    """
+    def has_permission(self, request, view):
+        # POST isteği için herhangi bir kullanıcıya izin ver
+        if request.method == 'POST' and view.action == 'create':
+            return True
+        # Diğer tüm işlemler için kimlik doğrulama gerektirir
+        return request.user and request.user.is_authenticated
 
 class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrCreateOnly]
     # Sipariş API'si için istek sınırlandırması
 
     throttle_scope = 'order_api'
@@ -50,9 +63,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
     
     def create(self, request, *args, **kwargs):
-        user = request.user
         data = request.data
-        address_id = data.get('address_id')
         items_data = data.get('items', [])
         coupon_code = data.get('coupon_code')
         notes = data.get('notes', '')
@@ -60,36 +71,81 @@ class OrderViewSet(viewsets.ModelViewSet):
         # Debug için gelen verilerin tipini kontrol et
         print(f"Gelen total_price: {data.get('total_price')} - Tipi: {type(data.get('total_price'))}")
         
-        # Adres kontrolü
-        try:
-            address = Address.objects.get(id=address_id, user=user)
-        except Address.DoesNotExist:
-            return Response({'error': 'Geçersiz adres.'}, status=status.HTTP_400_BAD_REQUEST)
-            
-        # Sipariş verileri oluştur
-        from decimal import Decimal
-        
         # Ödeme metodunu al
         payment_method = data.get('payment_method', 'online')
         if payment_method not in ['online', 'cash_on_delivery']:
             payment_method = 'online'  # Geçersiz değer için varsayılan
+            
+        # Kullanıcı oturum açtıysa adres kontrolü yap
+        user = request.user if request.user.is_authenticated else None
         
-        order_data = {
-            'user': user,
-            'first_name': address.first_name,
-            'last_name': address.last_name,
-            'email': user.email,
-            'address': address.address,
-            'city': address.city,
-            'postal_code': address.postal_code or '',
-            'country': address.country,
-            'phone_number': address.phone_number,
-            'payment_method': payment_method,
-            'total_price': Decimal(str(data.get('total_price', 0))),
-            'discount': Decimal(str(data.get('discount', 0))),
-            'final_price': Decimal(str(data.get('final_price', 0))),
-            'notes': notes,
-        }
+        from decimal import Decimal
+        
+        if user:
+            # Kayıtlı kullanıcı için adres kontrolü
+            address_id = data.get('address_id')
+            try:
+                address = Address.objects.get(id=address_id, user=user)
+            except Address.DoesNotExist:
+                return Response({'error': 'Geçersiz adres.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+            order_data = {
+                'user': user,
+                'first_name': address.first_name,
+                'last_name': address.last_name,
+                'email': user.email,
+                'address': address.address,
+                'city': address.city,
+                'postal_code': address.postal_code or '',
+                'country': address.country,
+                'phone_number': address.phone_number,
+                'payment_method': payment_method,
+                'total_price': Decimal(str(data.get('total_price', 0))),
+                'discount': Decimal(str(data.get('discount', 0))),
+                'final_price': Decimal(str(data.get('final_price', 0))),
+                'notes': notes,
+                    'is_guest_order': False,
+                }
+        else:
+            # Misafir kullanıcı için adres bilgileri
+            guest_info = data.get('guest_info', {})
+            if not guest_info:
+                return Response({'error': 'Misafir kullanıcı bilgileri eksik.'}, status=status.HTTP_400_BAD_REQUEST)
+                
+            # Ad soyadı parçala
+            full_name = guest_info.get('full_name', '')
+            name_parts = full_name.split(' ', 1)
+            first_name = name_parts[0]
+            last_name = name_parts[1] if len(name_parts) > 1 else ''
+            
+            order_data = {
+                'user': None,
+                'first_name': first_name,
+                'last_name': last_name,
+                'email': guest_info.get('email', ''),
+                'address': guest_info.get('address', ''),
+                'city': guest_info.get('city', ''),
+                'postal_code': guest_info.get('postal_code', ''),
+                'country': 'Türkiye',
+                'phone_number': guest_info.get('phone', ''),
+                'payment_method': payment_method,
+                'total_price': Decimal(str(data.get('total_price', 0))),
+                'discount': Decimal(str(data.get('discount', 0))),
+                'final_price': Decimal(str(data.get('final_price', 0))),
+                'notes': notes,
+                'is_guest_order': True,
+                'guest_email': guest_info.get('email', ''),
+            }
+            
+            # Gerekli alanların kontrolü
+            required_fields = ['full_name', 'email', 'phone', 'address', 'city', 'district']
+            missing_fields = [field for field in required_fields if not guest_info.get(field)]
+            
+            if missing_fields:
+                return Response({
+                    'error': 'Eksik bilgiler mevcut.',
+                    'missing_fields': missing_fields
+                }, status=status.HTTP_400_BAD_REQUEST)
         
         try:
             with transaction.atomic():

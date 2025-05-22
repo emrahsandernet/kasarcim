@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     "payments",
     "coupons",
     "users",
-
+    "announcements",
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True

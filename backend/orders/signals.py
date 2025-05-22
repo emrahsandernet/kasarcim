@@ -11,7 +11,9 @@ def handle_order_status_change(sender, instance, created, **kwargs):
     """
     # Yeni sipariş oluşturulduğunda
     if created:
-        transaction.on_commit(lambda: send_order_created_email.delay(instance.id, instance.user.id))
+        # Kullanıcı varsa user_id, yoksa 0 (misafir sipariş olduğunu belirtmek için)
+        user_id = instance.user.id if instance.user else 0
+        transaction.on_commit(lambda: send_order_created_email.delay(instance.id, user_id))
         return
     
     # Daha önce var olan siparişler için statüs değişikliklerini izle
@@ -23,7 +25,9 @@ def handle_order_status_change(sender, instance, created, **kwargs):
             
         # Sipariş ödendi olarak işaretlendiyse
         if instance.status == 'paid':
-            transaction.on_commit(lambda: send_payment_confirmed_email.delay(instance.id, instance.user.id))
+            # Kullanıcı varsa user_id, yoksa 0 (misafir sipariş olduğunu belirtmek için)
+            user_id = instance.user.id if instance.user else 0
+            transaction.on_commit(lambda: send_payment_confirmed_email.delay(instance.id, user_id))
             
     except Exception as e:
         # Hata durumunda loglama yapmak için
@@ -46,8 +50,9 @@ def handle_shipment_status_change(sender, instance, created, **kwargs):
                 order.status = 'shipped'
                 order.save(update_fields=['status'])
                 
-            # E-posta gönderimi
-            transaction.on_commit(lambda: send_order_shipped_email.delay(order.id, order.user.id))
+            # E-posta gönderimi - kullanıcı varsa user_id, yoksa 0
+            user_id = order.user.id if order.user else 0
+            transaction.on_commit(lambda: send_order_shipped_email.delay(order.id, user_id))
             
         # Kargo teslim edildi olarak işaretlendiyse
         elif instance.status == 'delivered':
