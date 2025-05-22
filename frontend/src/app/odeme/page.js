@@ -649,20 +649,20 @@ const PaymentPage = () => {
             event: "purchase",
             ecommerce: {
               transaction_id: order.id.toString(),
-              value: finalTotal,
+              value: parseFloat(finalTotal),
               currency: "TRY",
               payment_type: paymentMethod,
               items: cartItems.map(item => ({
                 item_id: item.id,
                 item_name: item.name,
-                price: item.currentPrice || item.price,
+                price: parseFloat(item.currentPrice || item.price),
                 quantity: item.quantity
               }))
             }
           });
         }
 
-        
+
         
         // Sepeti temizle
         clearCart();
