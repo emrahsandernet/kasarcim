@@ -1,3 +1,4 @@
+import Script from "next/script"; // <-- Bunu en üste ekle
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from '@/context/AuthContext';
@@ -80,7 +81,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="tr">
       <head>
-        {/* ✅ JSON-LD Structured Data */}
+        {/* Structured Data (senin zaten eklediğin) */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -98,15 +99,26 @@ export default function RootLayout({ children }) {
             }),
           }}
         />
-      
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-JLE1EDC98S"></script>
-        <script>
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments)}
-          gtag('js', new Date());
 
-          gtag('config', 'G-JLE1EDC98S');
-        </script>
+        {/* ✅ Google Analytics (GA4) Kodları */}
+        <Script
+          strategy="afterInteractive"
+          src={`https://www.googletagmanager.com/gtag/js?id=G-JLE1EDC98S`}
+        />
+        <Script
+          id="google-analytics"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-JLE1EDC98S', {
+                page_path: window.location.pathname,
+              });
+            `,
+          }}
+        />
       </head>
       <body className={inter.className}>
         <AuthProvider>
