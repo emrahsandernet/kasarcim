@@ -619,7 +619,7 @@ const PaymentPage = () => {
       };
       
       // Debug için konsola yazdır
-      console.log('Sipariş verileri:', JSON.stringify(orderData));
+      //console.log('Sipariş verileri:', JSON.stringify(orderData));
       
       // Kullanıcı giriş yapmışsa adres ID'sini ekle
       if (user) {
@@ -643,9 +643,29 @@ const PaymentPage = () => {
         const order = await OrderService.createOrder(orderData);
         
         // Ödeme isteğini kaldırdık - otomatik oluşuyor
-      
-      // Sepeti temizle
-      clearCart();
+        // purchase event'ini gönder
+        if (typeof window !== 'undefined' && window.dataLayer) {
+          window.dataLayer.push({
+            event: "purchase",
+            ecommerce: {
+              transaction_id: order.id.toString(),
+              value: finalTotal,
+              currency: "TRY",
+              payment_type: paymentMethod,
+              items: cartItems.map(item => ({
+                item_id: item.id,
+                item_name: item.name,
+                price: item.currentPrice || item.price,
+                quantity: item.quantity
+              }))
+            }
+          });
+        }
+
+        
+        
+        // Sepeti temizle
+        clearCart();
       
         // Sipariş tamamlandı sayfasına yönlendir
         const redirectUrl = `/siparis-basarili?orderId=${order.id}&total=${finalTotal}&paymentMethod=${paymentMethod}`;
