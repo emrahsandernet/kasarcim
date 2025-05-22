@@ -98,6 +98,15 @@ export default function RootLayout({ children }) {
             }),
           }}
         />
+      
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-JLE1EDC98S"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments)}
+          gtag('js', new Date());
+
+          gtag('config', 'G-JLE1EDC98S');
+        </script>
       </head>
       <body className={inter.className}>
         <AuthProvider>
