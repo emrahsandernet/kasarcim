@@ -233,7 +233,7 @@ export function CartProvider({ children }) {
           <FaTag className="text-orange-500 mr-2" />
           <div>
             <div className="text-sm font-medium text-orange-700">{code} kuponu başarıyla uygulandı!</div>
-            <div className="text-xs text-orange-500">{data.discount_amount} TL indirim kazandınız</div>
+            <div className="text-xs text-orange-500">{parseFloat(data.discount_amount).toFixed(2)} TL indirim kazandınız</div>
           </div>
         </div>
       ), {
