@@ -23,7 +23,26 @@ export default function ProductDetail({ product: initialProduct, slug }) {
   const [product, setProduct] = useState(initialProduct);
   const [userHasReviewed, setUserHasReviewed] = useState(false);
   const [loading, setLoading] = useState(!initialProduct);
-  
+  // 👉 GA4 / GTM için view_item eventi gönder
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.dataLayer && product) {
+      window.dataLayer.push({
+        event: 'view_item',
+        ecommerce: {
+          items: [
+            {
+              item_id: product.id,
+              item_name: product.name,
+              price: product.currentPrice || product.price,
+              item_brand: 'Kaşarcım',
+              item_category: product.category?.name || 'Peynir',
+              quantity: 1
+            }
+          ]
+        }
+      });
+    }
+  }, [product]);
   // Sayfa yüklendiğinde en üste kaydır
   useEffect(() => {
     window.scrollTo(0, 0);
