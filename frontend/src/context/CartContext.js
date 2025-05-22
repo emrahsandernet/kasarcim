@@ -163,6 +163,22 @@ export function CartProvider({ children }) {
     // State'i güncelle
     setCartItems(newCartItems);
     localStorage.setItem('cartItems', JSON.stringify(newCartItems));
+    // 👉 GA4 / GTM için remove_from_cart eventi gönder
+    if (typeof window !== 'undefined' && window.dataLayer && productToRemove) {
+      window.dataLayer.push({
+        event: 'remove_from_cart',
+        ecommerce: {
+          items: [
+            {
+              item_name: productToRemove.name,
+              item_id: productToRemove.id,
+              price: productToRemove.currentPrice || productToRemove.price,
+              quantity: productToRemove.quantity || 1
+            }
+          ]
+        }
+      });
+    }
     
     if (productToRemove) {
       toast.success(`${productToRemove.name} sepetten çıkarıldı`, {
