@@ -85,6 +85,38 @@ export default function SiparisBasariliPage() {
   const [debugInfo, setDebugInfo] = useState({});
   const [paymentMethod, setPaymentMethod] = useState('bank_transfer'); // Varsayılan ödeme yöntemi
   
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!orderInfo) return;
+  
+    // localStorage içinden sepet bilgilerini al
+    const cart = JSON.parse(localStorage.getItem("cartItems") || "[]");
+  
+      // GA4 için purchase event'ini gönder
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "purchase",
+        ecommerce: {
+          transaction_id: orderInfo.id.toString(),
+          affiliation: "Kaşarcım",
+          value: orderInfo.total,
+          currency: "TRY",
+          payment_type: paymentMethod,
+          items: cart.map((item) => ({
+            item_id: item.id.toString(),
+            item_name: item.name,
+            item_brand: "Kaşarcım",
+            item_category: item.category_name || "Peynir",
+            quantity: item.quantity,
+            price: item.currentPrice || item.price,
+          })),
+        },
+      });
+    
+      // Sepet bilgilerini sil
+      localStorage.removeItem("cartItems");
+    }, [orderInfo]);
   // IBAN kopyalama işlevi
   const copyToClipboard = async (text) => {
     try {
