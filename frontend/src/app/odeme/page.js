@@ -470,6 +470,26 @@ const PaymentPage = () => {
       localStorage.setItem('guestInfo', JSON.stringify(updatedInfo));
     }
   };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.dataLayer && cartItems.length > 0 && paymentMethod) {
+      window.dataLayer.push({
+        event: "add_payment_info",
+        ecommerce: {
+          currency: "TRY",
+          payment_type: paymentMethod, // örn: bank_transfer, cash_on_delivery
+          items: cartItems.map(item => ({
+            item_id: item.id,
+            item_name: item.name,
+            item_brand: "Kaşarcım",
+            item_category: item.category_name || item.category?.name || "Peynir",
+            price: item.currentPrice || item.price,
+            quantity: item.quantity
+          }))
+        }
+      });
+    }
+  }, [paymentMethod]);
   
   // E-posta yazım hatalarını düzeltme fonksiyonu
   const correctEmailTypos = (email) => {
