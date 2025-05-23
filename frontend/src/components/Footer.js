@@ -53,6 +53,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/blog" className="text-gray-300 hover:text-orange-500">
+                  Blog
+                </Link>
+              </li>
+              <li>
                 <Link href="/hakkimizda" className="text-gray-300 hover:text-orange-500">
                   Hakkımızda
                 </Link>

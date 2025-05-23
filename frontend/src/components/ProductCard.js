@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+import CustomLink from './CustomLink';
 import { FaCartPlus, FaWeightHanging, FaEye, FaCheckCircle, FaLiraSign } from 'react-icons/fa';
 import { useCart } from '@/context/CartContext';
 
@@ -93,7 +93,7 @@ export default function ProductCard({ product }) {
       </div>
       
       <div className="relative overflow-hidden">
-        <Link href={`/urunler/${product.slug}`}>
+        <CustomLink href={`/urunler/${product.slug}`}>
           <div className="aspect-square relative">
             <div className="relative w-full h-full">
               <Image src={product.img_url} alt={product.name} fill className="object-cover" priority/>
@@ -106,7 +106,7 @@ export default function ProductCard({ product }) {
               </div>
             </div>
           </div>
-        </Link>
+        </CustomLink>
         
         {/* Gramaj etiketi */}
         {weight > 0 && (
@@ -120,20 +120,20 @@ export default function ProductCard({ product }) {
       <div className="p-5 relative flex-1 flex flex-col">
         {/* Kategori linki */}
         <div className="mb-1">
-          <Link 
+          <CustomLink 
             href={`/kategoriler/${product.category_slug || product.category?.slug}`} 
             className="text-xs text-orange-500 hover:text-orange-600 transition-colors font-medium uppercase tracking-wide"
           >
             {product.category_name || product.category?.name}
-          </Link>
+          </CustomLink>
         </div>
         
-        <Link href={`/urunler/${product.slug}`} className="block group-hover:text-orange-500 transition-colors">
+        <CustomLink href={`/urunler/${product.slug}`} className="block group-hover:text-orange-500 transition-colors">
           <h3 className="text-xl font-bold text-gray-800 line-clamp-2 min-h-[46px]">
             {product.name}
         
           </h3>
-        </Link>
+        </CustomLink>
         
         {/* Kısa açıklama */}
         <p className="mt-2 text-sm text-gray-600 line-clamp-2 min-h-[80px] italic">

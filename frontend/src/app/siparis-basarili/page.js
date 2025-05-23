@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
+import { useCart } from '@/context/CartContext';
 import { FaCheckCircle, FaArrowLeft, FaHome, FaBoxOpen, FaCopy, FaCheck, FaCreditCard, FaMoneyBillAlt, FaTruck } from 'react-icons/fa';
 import Loader from '../components/Loader';
 
@@ -79,6 +80,8 @@ const customStyles = `
 export default function SiparisBasariliPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
+  const { clearCart } = useCart();
+  const cartClearedRef = useRef(false); // clearCart'ın çağrılıp çağrılmadığını takip etmek için
   const [orderInfo, setOrderInfo] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [copyingIban, setCopyingIban] = useState(false);
@@ -140,6 +143,12 @@ export default function SiparisBasariliPage() {
   useEffect(() => {
     setMounted(true);
     
+    // Sepeti temizle - sipariş başarıyla tamamlandı (sadece bir kez)
+    if (!cartClearedRef.current) {
+      clearCart();
+      cartClearedRef.current = true;
+    }
+    
     // CSS stillerini ekle
     if (typeof document !== 'undefined') {
       const style = document.createElement('style');
@@ -150,7 +159,7 @@ export default function SiparisBasariliPage() {
         document.head.removeChild(style);
       };
     }
-  }, []);
+  }, []); // clearCart'ı dependency array'den çıkardık
   
   // URL'den sipariş bilgilerini al - ayrı bir useEffect içinde
   useEffect(() => {

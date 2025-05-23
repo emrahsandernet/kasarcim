@@ -16,6 +16,7 @@ export function CartProvider({ children }) {
   const [couponCode, setCouponCode] = useState('');
   const [discount, setDiscount] = useState(0);
   const [couponLoading, setCouponLoading] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   
   // Ortak toast stilleri
   const toastStyle = {
@@ -31,6 +32,7 @@ export function CartProvider({ children }) {
   // LocalStorage'dan sepeti yükle
   useEffect(() => {
     try {
+      // Önce eski format ile kontrol et (cart key)
       const savedCart = localStorage.getItem('cart');
       if (savedCart) {
         const parsedCart = JSON.parse(savedCart);
@@ -41,6 +43,23 @@ export function CartProvider({ children }) {
           setCouponCode(parsedCart.couponCode);
           setDiscount(parsedCart.discount || 0);
         }
+        // Eski formatı temizle
+        localStorage.removeItem('cart');
+      } else {
+        // Yeni format ile kontrol et (cartItems key)
+        const savedCartItems = localStorage.getItem('cartItems');
+        if (savedCartItems) {
+          const parsedItems = JSON.parse(savedCartItems);
+          setCartItems(parsedItems);
+        }
+      }
+      
+      // Ayrıca kupon bilgilerini de yükle
+      const savedCoupon = localStorage.getItem('coupon');
+      const savedDiscount = localStorage.getItem('discount');
+      if (savedCoupon) {
+        setCouponCode(savedCoupon);
+        setDiscount(parseFloat(savedDiscount) || 0);
       }
     } catch (error) {
       console.error('Sepet yüklenirken hata oluştu:', error);
@@ -51,14 +70,27 @@ export function CartProvider({ children }) {
   
   // Sepeti LocalStorage'a kaydet
   useEffect(() => {
-    if (!loading) {
-      localStorage.setItem('cart', JSON.stringify({
-        items: cartItems,
-        couponCode,
-        discount
-      }));
+    if (!loading && cartItems.length > 0) {
+      localStorage.setItem('cartItems', JSON.stringify(cartItems));
     }
-  }, [cartItems, couponCode, discount, loading]);
+  }, [cartItems, loading]);
+  
+  // Kupon bilgilerini ayrı kaydet
+  useEffect(() => {
+    if (!loading) {
+      if (couponCode) {
+        localStorage.setItem('coupon', couponCode);
+        localStorage.setItem('discount', discount.toString());
+      } else {
+        localStorage.removeItem('coupon');
+        localStorage.removeItem('discount');
+      }
+    }
+  }, [couponCode, discount, loading]);
+  
+  // Drawer kontrol fonksiyonları
+  const openDrawer = () => setIsDrawerOpen(true);
+  const closeDrawer = () => setIsDrawerOpen(false);
   
   // Sepet sayfasına yönlendirme yapacak fonksiyon
   const navigateToCart = () => {
@@ -78,7 +110,7 @@ export function CartProvider({ children }) {
     } else {
       // İndirim ve fiyat hesaplamaları
       const isDiscounted = product.active_discount !== null && product.active_discount !== undefined;
-      const currentPrice = isDiscounted ? product.discounted_price : product.price;
+      const currentPrice = isDiscounted ? (parseFloat(product.discounted_price) || parseFloat(product.price) || 0) : (parseFloat(product.price) || 0);
       
       // Ürün sepette yoksa, yeni ürün olarak ekle
       newCartItems.push({
@@ -97,6 +129,7 @@ export function CartProvider({ children }) {
         event: 'add_to_cart',
         ecommerce: {
           items: [
+            
             {
               item_name: product.name,
               item_id: product.id,
@@ -108,49 +141,8 @@ export function CartProvider({ children }) {
       });
     }
     
-    // Modern toast ile bildirimi göster
-    toast((t) => (
-      <div className="flex flex-col w-full relative">
-        <div className="flex items-start w-full ">
-          {product.img_url && (
-            <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0 mr-2">
-              <Image 
-                src={product.img_url || "/images/placeholder.png"} 
-                alt={product.name}
-                width={32}
-                height={32}
-                className="object-cover w-full h-full"
-              />
-            </div>
-          )}
-          <div className="flex-grow">
-            <div className="text-sm font-medium text-orange-700">{product.name} sepete eklendi</div>
-            <div className="text-xs text-orange-500">{quantity} adet</div>
-          </div>
-        </div>
-        <button
-          onClick={() => {
-            toast.dismiss(t.id);
-            navigateToCart();
-          }}
-          className="absolute top-6 right-0 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm py-1.5 px-4 rounded-full hover:from-orange-600 hover:to-orange-700 transition-all duration-200 shadow-sm"
-        >
-          <div className="flex items-center">
-            <FaShoppingCart className="mr-1.5 text-xs" />
-            Sepete Git
-          </div>
-        </button>
-      </div>
-    ), {
-      duration: 3000,
-      style: {
-        ...toastStyle,
-        padding: '12px',
-        paddingBottom: '28px' // Buton için daha az alan
-      },
-      position: 'bottom-right',
-      icon: null,
-    });
+    // Drawer'ı aç
+    openDrawer();
   };
   
   // Sepetten ürün kaldır
@@ -180,13 +172,7 @@ export function CartProvider({ children }) {
       });
     }
     
-    if (productToRemove) {
-      toast.success(`${productToRemove.name} sepetten çıkarıldı`, {
-        icon: <FaInfoCircle className="text-orange-500" />,
-        style: toastStyle,
-        position: 'bottom-right',
-      });
-    }
+   
   };
   
   // Sepetteki ürün miktarını güncelle
@@ -219,29 +205,12 @@ export function CartProvider({ children }) {
     localStorage.removeItem('coupon');
     localStorage.removeItem('discount');
     
-    toast.success('Sepetiniz temizlendi', {
-      icon: <FaInfoCircle className="text-orange-500" />,
-      style: toastStyle,
-      position: 'bottom-right',
-    });
+   
   };
   
   // Kupon kodunu uygula
   const applyCoupon = async (code) => {
     if (!code || code.trim() === '') {
-      toast((t) => (
-        <div className="flex items-center">
-          <FaExclamationTriangle className="text-yellow-500 mr-2" />
-          <span className="text-yellow-700">Lütfen geçerli bir kupon kodu girin</span>
-        </div>
-      ), {
-        style: {
-          ...toastStyle,
-          background: 'linear-gradient(to right, #FFFBEB, #FEF9C3)',
-          border: '1px solid rgba(245, 158, 11, 0.2)',
-        },
-        position: 'bottom-right',
-      });
       return;
     }
     
@@ -260,19 +229,6 @@ export function CartProvider({ children }) {
       localStorage.setItem('coupon', code);
       localStorage.setItem('discount', data.discount_amount || 0);
       
-      toast((t) => (
-        <div className="flex items-center">
-          <FaTag className="text-orange-500 mr-2" />
-          <div>
-            <div className="text-sm font-medium text-orange-700">{code} kuponu başarıyla uygulandı!</div>
-            <div className="text-xs text-orange-500">{parseFloat(data.discount_amount).toFixed(2)} TL indirim kazandınız</div>
-          </div>
-        </div>
-      ), {
-        style: toastStyle,
-        position: 'bottom-right',
-        duration: 4000,
-      });
     } catch (error) {
       console.error('Kupon uygulama hatası:', error);
       
@@ -314,12 +270,6 @@ export function CartProvider({ children }) {
     setDiscount(0);
     localStorage.removeItem('coupon');
     localStorage.removeItem('discount');
-    
-    toast.success('Kupon kodu kaldırıldı', {
-      icon: <FaInfoCircle className="text-orange-500" />,
-      style: toastStyle,
-      position: 'bottom-right',
-    });
   };
   
   // Sepet toplamını hesapla (indirimli fiyatları kullanarak)
@@ -327,10 +277,12 @@ export function CartProvider({ children }) {
     (total, item) => {
       // currentPrice varsa onu, yoksa indirimli veya normal fiyatı kullan
       const itemPrice = item.currentPrice !== undefined ? 
-        item.currentPrice : 
-        (item.active_discount && item.discounted_price !== null ? item.discounted_price : item.price);
+        parseFloat(item.currentPrice) || 0 : 
+        (item.active_discount && item.discounted_price !== null ? 
+          parseFloat(item.discounted_price) || 0 : 
+          parseFloat(item.price) || 0);
       
-      return total + itemPrice * item.quantity;
+      return total + itemPrice * (parseInt(item.quantity) || 0);
     },
     0
   );
@@ -385,7 +337,10 @@ export function CartProvider({ children }) {
       removeCoupon,
       couponLoading,
       createOrder,
-      createPaymentSession
+      createPaymentSession,
+      isDrawerOpen,
+      openDrawer,
+      closeDrawer
     }}>
       {children}
     </CartContext.Provider>

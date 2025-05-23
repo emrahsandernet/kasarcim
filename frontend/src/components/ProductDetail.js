@@ -9,7 +9,7 @@ import { useCart } from '@/context/CartContext';
 import ProductRating from '@/components/ProductRating';
 import ProductReviews from '@/components/ProductReviews';
 import { ProductService, api } from '@/services';
-import Loader from '@/components/Loader';
+import PageLoader from '@/components/PageLoader';
 import toast from 'react-hot-toast';
 
 export default function ProductDetail({ product: initialProduct, slug }) {
@@ -170,12 +170,7 @@ export default function ProductDetail({ product: initialProduct, slug }) {
   };
 
   if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-12 flex justify-center items-center min-h-[50vh] flex-col">
-        <Loader size="large" />
-        <p className="mt-4 text-gray-600 font-medium">Ürün bilgileri yükleniyor...</p>
-      </div>
-    );
+    return <PageLoader />;
   }
   
   if (!product) {

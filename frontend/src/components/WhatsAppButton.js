@@ -34,7 +34,7 @@ export default function WhatsAppButton() {
     href={whatsappUrl}
     target="_blank" 
     rel="noopener noreferrer"
-    className={`fixed ${isScrolled ? 'bottom-4 md:bottom-6' : 'bottom-4 md:bottom-6'} right-4 md:right-4 z-[9999] flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full bg-green-500 text-white shadow-xl hover:bg-green-600 transition-all duration-300 hover:scale-110 md:hover:scale-105 pulse-animation`}
+    className={`fixed ${isScrolled ? 'bottom-4 md:bottom-6' : 'bottom-4 md:bottom-6'} right-4 md:right-4 z-[30] flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full bg-green-500 text-white shadow-xl hover:bg-green-600 transition-all duration-300 hover:scale-110 md:hover:scale-105 pulse-animation`}
     aria-label="WhatsApp ile iletişime geç"
     style={{
       boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)'

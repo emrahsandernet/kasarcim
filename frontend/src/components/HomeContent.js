@@ -13,13 +13,9 @@ export default function HomeContent() {
       <Hero />
       </div>
       
-      {/* Neden Bizi Seçmelisiniz */}
-      <div className="pt-16 pb-12">
-      <WhyChooseUs />
-      </div>
-      
+    
       {/* Öne Çıkan Ürünlerimiz */}
-      <div className="py-16 bg-white">
+      <div className="py-2 bg-white">
       <FeaturedProducts />
       </div>
       

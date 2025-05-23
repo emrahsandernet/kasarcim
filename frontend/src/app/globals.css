@@ -59,4 +59,14 @@ body {
   .no-spin[type='number'] {
     -moz-appearance: textfield;
   }
+  
+  /* Kaydırma çubuğunu gizle */
+  .hide-scrollbar {
+    -ms-overflow-style: none;  /* IE ve Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari ve Opera */
+  }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from 'next/link';
+import CustomLink from './CustomLink';
 import { useState, useRef, useEffect } from 'react';
 import { FaShoppingCart, FaUser, FaUserCircle, FaSignOutAlt, FaClipboardList, FaHome, FaSpinner } from 'react-icons/fa';
 import { useCart } from '@/context/CartContext';
@@ -9,7 +9,7 @@ import LoginModal from './LoginModal';
 import Image from 'next/image';
 
 export default function Navbar() {
-  const { cartItemsCount } = useCart();
+  const { cartItemsCount, openDrawer } = useCart();
   const { user, logout, isAuthenticated, loading } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -40,7 +40,7 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link href="/" className="text-orange-500 font-bold text-2xl">
+            <CustomLink href="/" className="text-orange-500 font-bold text-2xl">
              <Image
                 src="/images/kasarcim-logo.svg"
                 alt="Kaşarcım Logo"
@@ -48,23 +48,26 @@ export default function Navbar() {
                 height={50}
                 className="h-8 w-auto"
               />
-            </Link>
+            </CustomLink>
           </div>
           
           {/* Navigation Links - Center */}
           <div className="hidden md:flex items-center justify-center space-x-8">
-            <Link href="/" className="text-gray-700 hover:text-orange-500 px-3 py-2 text-sm font-medium">
+            <CustomLink href="/" className="text-gray-700 hover:text-orange-500 px-3 py-2 text-sm font-medium">
               Ana Sayfa
-            </Link>
-            <Link href="/urunler" className="text-gray-700 hover:text-orange-500 px-3 py-2 text-sm font-medium">
+            </CustomLink>
+            <CustomLink href="/urunler" className="text-gray-700 hover:text-orange-500 px-3 py-2 text-sm font-medium">
               Ürünler
-            </Link>
-            <Link href="/hakkimizda" className="text-gray-700 hover:text-orange-500 px-3 py-2 text-sm font-medium">
+            </CustomLink>
+            <CustomLink href="/blog" className="text-gray-700 hover:text-orange-500 px-3 py-2 text-sm font-medium">
+              Blog
+            </CustomLink>
+            <CustomLink href="/hakkimizda" className="text-gray-700 hover:text-orange-500 px-3 py-2 text-sm font-medium">
               Hakkımızda
-            </Link>
-            <Link href="/iletisim" className="text-gray-700 hover:text-orange-500 px-3 py-2 text-sm font-medium">
+            </CustomLink>
+            <CustomLink href="/iletisim" className="text-gray-700 hover:text-orange-500 px-3 py-2 text-sm font-medium">
               İletişim
-            </Link>
+            </CustomLink>
           </div>
           
           {/* Right Side - Login and Cart */}
@@ -92,32 +95,32 @@ export default function Navbar() {
                       <p className="text-xs text-gray-500 truncate">{user.email}</p>
                     </div>
                     
-                    <Link 
+                    <CustomLink 
                       href="/profilim" 
                       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"
                       onClick={() => setDropdownOpen(false)}
                     >
                       <FaUser className="mr-3 h-4 w-4" />
                       Profilim
-                    </Link>
+                    </CustomLink>
                     
-                    <Link 
+                    <CustomLink 
                       href="/siparisler" 
                       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"
                       onClick={() => setDropdownOpen(false)}
                     >
                       <FaClipboardList className="mr-3 h-4 w-4" />
                       Siparişlerim
-                    </Link>
+                    </CustomLink>
                     
-                    <Link 
+                    <CustomLink 
                       href="/adreslerim" 
                       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"
                       onClick={() => setDropdownOpen(false)}
                     >
                       <FaHome className="mr-3 h-4 w-4" />
                       Adreslerim
-                    </Link>
+                    </CustomLink>
                     
                     <div className="border-t border-gray-100 mt-2 pt-2">
                       <button 
@@ -140,14 +143,17 @@ export default function Navbar() {
               </button>
             )}
             
-            <Link href="/sepet" className="flex items-center justify-center w-10 h-10 rounded-full bg-orange-100 text-orange-600 hover:bg-orange-200 transition-colors relative">
+            <button 
+              onClick={openDrawer}
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-orange-100 text-orange-600 hover:bg-orange-200 transition-colors relative"
+            >
               <FaShoppingCart className="h-5 w-5" />
               {cartItemsCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-orange-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs font-bold">
                   {cartItemsCount}
                 </span>
               )}
-            </Link>
+            </button>
           </div>
         </div>
       </div>

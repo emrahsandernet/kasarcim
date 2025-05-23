@@ -5,48 +5,36 @@ import Image from 'next/image';
 
 export default function Hero() {
   return (
-    <section className="bg-gray-100 py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-          <div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-slate-700">
-              Türkiye'nin En Lezzetli<br />
-              Kaşar Peyniri
-            </h1>
-            <p className="text-lg mb-8 text-slate-600">
-              Doğal yöntemlerle üretilen, geleneksel lezzeti modern kalite
-              standartlarıyla buluşturan kaşar peynirlerimizi keşfedin.
-            </p>
-            <div className="flex gap-4 flex-wrap">
-              <Link 
-                href="/urunler" 
-                className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-md font-semibold transition-colors"
-              >
-                Ürünlerimiz
-              </Link>
-              <Link 
-                href="/hakkimizda" 
-                className="bg-white border border-gray-300 hover:bg-gray-100 text-slate-700 px-6 py-3 rounded-md font-semibold transition-colors"
-              >
-                Hakkımızda
-              </Link>
-            </div>
-          </div>
-          
-          <div className="relative rounded-lg overflow-hidden h-[400px]">
-        
-            <Image
-              src="https://cdn.kasarcim.com/0547d9a983b84b76_kasar-hero.png"
-              alt="Kaşar Peyniri"
-              fill
-              sizes="(max-width: 768px) 100vw, 50vw"
-              style={{ objectFit: 'cover' }}
-              className="w-full h-full bg-orange-50 rounded-lg flex items-center justify-center"
-              priority
-            />
-           
-          </div>
-        </div>
+    <section className="relative bg-orange-900 min-h-[600px] md:min-h-[700px] flex items-center justify-center overflow-hidden">
+      {/* Arka plan görseli */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="https://cdn.kasarcim.com/0547d9a983b84b76_kasar-hero.png"
+          alt="Kaşar Peyniri Dükkanı"
+          fill
+          sizes="100vw"
+          style={{ objectFit: 'cover' }}
+          className="opacity-60"
+          priority
+        />
+        {/* Turuncu gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 via-gray-800/70 to-gray-700/70"></div>
+      </div>
+      
+      {/* İçerik */}
+      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 text-white leading-tight">
+        Doğanın Lezzeti, Köylünün Emeği
+      </h1>
+      <p className="text-xl md:text-2xl lg:text-3xl mb-12 text-white font-medium">
+        Organik yöntemlerle üretilen köy peynirleri, el emeğiyle sofranıza ulaşıyor.
+      </p>
+        <Link 
+          href="/urunler" 
+          className="inline-block bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 md:px-12 md:py-5 text-lg md:text-xl font-bold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-orange-500/25 border-2 border-orange-400"
+        >
+          ALIŞVERİŞE BAŞLA
+        </Link>
       </div>
     </section>
   );

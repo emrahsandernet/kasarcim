@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import CustomLink from '@/components/CustomLink';
 import Image from 'next/image';
 import { FaTrash, FaMinus, FaPlus, FaArrowLeft, FaCreditCard, FaTimes, FaTag } from 'react-icons/fa';
 import { useCart } from '@/context/CartContext';
+import PageLoader from '@/components/PageLoader';
 
 export default function CartPage() {
   const { 
@@ -58,9 +59,9 @@ export default function CartPage() {
               <p className="text-gray-600 mb-6 sm:mb-8 max-w-md text-sm sm:text-base">
                 Sepetinize henüz ürün eklemediniz. Alışverişe başlamak için ürünlerimize göz atabilirsiniz.
               </p>
-              <Link href="/urunler" className="bg-orange-500 hover:bg-orange-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-md font-semibold transition-colors text-sm sm:text-base">
+              <CustomLink href="/urunler" className="bg-orange-500 hover:bg-orange-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-md font-semibold transition-colors text-sm sm:text-base">
                 Alışverişe Başla
-              </Link>
+              </CustomLink>
             </div>
           </div>
         </div>
@@ -69,7 +70,7 @@ export default function CartPage() {
   }
   
   if (!mounted) {
-    return <div className="py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">Yükleniyor...</div>;
+    return <PageLoader />;
   }
   
   return (
@@ -306,10 +307,10 @@ export default function CartPage() {
           </div>
           
           <div className="flex flex-wrap justify-between gap-4 mb-8">
-            <Link href="/urunler" className="inline-flex items-center text-orange-500 hover:text-orange-600 text-sm sm:text-base">
+            <CustomLink href="/urunler" className="inline-flex items-center text-orange-500 hover:text-orange-600 text-sm sm:text-base">
               <FaArrowLeft className="mr-2" />
               Alışverişe Devam Et
-            </Link>
+            </CustomLink>
             <button 
               onClick={clearCart}
               className="text-red-500 hover:text-red-700 text-sm sm:text-base"
@@ -376,7 +377,7 @@ export default function CartPage() {
               </div>
               
               <div className="mt-4 sm:mt-6">
-                <Link 
+                <CustomLink 
                   href="/odeme" 
                   onClick={() => {
                     if (typeof window !== "undefined" && window.dataLayer) {
@@ -399,62 +400,12 @@ export default function CartPage() {
                 >
                   <FaCreditCard className="mr-2" />
                   Siparişi Tamamla
-                </Link>
+                </CustomLink>
               </div>
             </div>
           </div>
           
-          {/* Kupon kodu giriş alanı */}
-          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-            <h2 className="text-lg font-semibold mb-3 sm:mb-4">Kupon Kodu</h2>
-            
-            {couponCode ? (
-              <div className="mt-3">
-                <div className="bg-orange-50 border border-orange-200 rounded-md p-3 flex justify-between items-center">
-                  <div>
-                    <span className="text-orange-700 font-medium flex items-center text-sm sm:text-base">
-                      <FaTag className="mr-2" />
-                      {couponCode}
-                    </span>
-                    <p className="text-xs text-orange-600 mt-1">
-                      {discount.toLocaleString('tr-TR', {
-                        style: 'currency',
-                        currency: 'TRY',
-                      })} indirim uygulandı
-                    </p>
-                  </div>
-                  <button 
-                    onClick={removeCoupon}
-                    className="text-orange-700 hover:text-orange-900"
-                  >
-                    <FaTimes className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <form onSubmit={handleApplyCoupon} className="flex flex-col space-y-3">
-                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0">
-                  <input 
-                    type="text" 
-                    value={couponInput}
-                    onChange={(e) => setCouponInput(e.target.value)}
-                    placeholder="Kupon kodunuzu girin"
-                    className="w-full sm:flex-grow px-4 py-2 border border-gray-300 rounded-md sm:rounded-r-none sm:rounded-l-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
-                  />
-                  <button 
-                    type="submit"
-                    className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md sm:rounded-l-none sm:rounded-r-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                    disabled={couponLoading || !couponInput}
-                  >
-                    {couponLoading ? 'Uygulanıyor...' : 'Uygula'}
-                  </button>
-                </div>
-                <p className="text-xs text-gray-600">
-                  Kupon kodunuzu girerek indirimlerden yararlanabilirsiniz. Örnek kupon kodları: KASAR10, YENIYIL20
-                </p>
-              </form>
-            )}
-          </div>
+      
         </div>
       </div>
     </div>

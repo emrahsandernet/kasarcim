@@ -58,7 +58,15 @@ urlpatterns = [
     path('api/password-reset/', csrf_exempt(PasswordResetRequestView.as_view()), name='password-reset'),
     path('api/password-reset-confirm/', csrf_exempt(PasswordResetConfirmView.as_view()), name='password-reset-confirm'),
     path('', include('announcements.urls')),
+    
+    # Blog URL'leri
+    path('api/blog/', include('blog.urls')),
+    
+    # CKEditor URL'leri
+    path('ckeditor/', include('ckeditor_uploader.urls')),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Statik ve medya dosyaları için URL desenleri
+# Bu, hem DEBUG=True hem de False durumunda çalışacak
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

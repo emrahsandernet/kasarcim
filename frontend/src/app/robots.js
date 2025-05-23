@@ -3,7 +3,7 @@ export default function robots() {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/api/', '/admin/']
+      disallow: ['/api/', '/km-admin/', '/admin/']
     },
     sitemap: 'https://kasarcim.com/sitemap.xml'
   }

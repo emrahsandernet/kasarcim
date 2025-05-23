@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY', default="django-insecure-jmxlyorkuj7v$f-qal9_@_v3o=_u*y3!0(dwsax2xa+kfk7xa^y8uv^e^a")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS =['kasarcim.com','localhost','127.0.0.1']
 
@@ -47,6 +47,9 @@ INSTALLED_APPS = [
     # Celery
     "django_celery_beat",
     "django_celery_results",
+    # CKEditor
+    "ckeditor",
+    "ckeditor_uploader",
     # Uygulama Modülleri
     "products",
     "orders",
@@ -54,6 +57,7 @@ INSTALLED_APPS = [
     "coupons",
     "users",
     "announcements",
+    "blog",
 ]
 
 CORS_ALLOW_ALL_ORIGINS = False
@@ -67,6 +71,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3002",
     "http://localhost:3003",
     "http://localhost:3004",
+    "http://localhost:8000",
     "https://kasarcim.com",
     "https://www.kasarcim.com",
     "https://cdn.kasarcim.com",
@@ -79,6 +84,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://cdn.kasarcim.com",
     "http://localhost:3000",
     "http://localhost",
+    "http://localhost:8000",
     "http://localhost:3001",
     "http://localhost:3002",
     "http://localhost:3003",
@@ -110,6 +116,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.static",
             ],
         },
     },
@@ -168,9 +175,9 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-# STATICFILES_DIRS = [
-#     os.path.join(BASE_DIR, 'staticfiles'),
-# ]
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'staticfiles'),
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -192,20 +199,65 @@ REST_FRAMEWORK = {
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ],
+    
 }
 
 # Medya dosyaları için ayarlar
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# CKEditor Ayarları
+CKEDITOR_UPLOAD_PATH = "uploads/"
+CKEDITOR_JQUERY_URL = "https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"
+CKEDITOR_IMAGE_BACKEND = "pillow"
+CKEDITOR_RESTRICT_BY_USER = True
+CKEDITOR_BROWSE_SHOW_DIRS = True
+CKEDITOR_ALLOW_NONIMAGE_FILES = True
 
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'Full',
+        'height': 400,
+        'width': '100%',
+        'skin': 'moono-lisa',
+        'toolbar_Full': [
+            ['Source', '-', 'Save', 'NewPage', 'DocProps', 'Preview', 'Print', '-', 'Templates'],
+            ['Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo'],
+            ['Find', 'Replace', '-', 'SelectAll', '-', 'SpellChecker', 'Scayt'],
+            ['Form', 'Checkbox', 'Radio', 'TextField', 'Textarea', 'Select', 'Button', 'ImageButton', 'HiddenField'],
+            '/',
+            ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'RemoveFormat'],
+            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', 'CreateDiv', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock', '-', 'BidiLtr', 'BidiRtl'],
+            ['Link', 'Unlink', 'Anchor'],
+            ['Image', 'Flash', 'Table', 'HorizontalRule', 'Smiley', 'SpecialChar', 'PageBreak', 'Iframe'],
+            '/',
+            ['Styles', 'Format', 'Font', 'FontSize'],
+            ['TextColor', 'BGColor'],
+            ['Maximize', 'ShowBlocks', '-', 'About']
+        ],
+        'extraPlugins': 'justify,liststyle,indent,font,divarea,colorbutton,contextmenu,widget,lineutils,clipboard,dialog,dialogui,elementspath',
+        'removeButtons': '',
+        'tabSpaces': 4,
+        'allowedContent': True,
+        'startupFocus': False,
+        'forcePasteAsPlainText': False,
+        'resize_dir': 'both',
+        'resize_enabled': True,
+        'language': 'tr',
+        'filebrowserBrowseUrl': '/ckeditor/browse/',
+        'filebrowserUploadUrl': '/ckeditor/upload/',
+        'toolbar_canCollapse': True,
+    },
+}
+
+X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 # Frontend URL
 FRONTEND_URL = config('FRONTEND_URL', default='https://kasarcim.com')
 
 # Celery ayarları
-CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
-CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='redis://localhost:6379/0')
+CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://redis:6379/0')
+CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='redis://redis:6379/0')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'

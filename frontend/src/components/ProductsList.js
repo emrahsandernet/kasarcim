@@ -6,6 +6,7 @@ import { FaFilter, FaSort, FaSearch } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import { CgSpinner } from 'react-icons/cg';
 import { ProductService } from '@/services';
+import PageLoader from './PageLoader';
 
 // Örnek ağırlık değerleri - API'den gelen verilere eklemek için kullanılacak
 const sampleWeights = [250, 500, 750, 1000, 1500, 2000];
@@ -37,6 +38,7 @@ export default function ProductsList() {
   const [categories, setCategories] = useState([
     { id: 0, name: "Tüm Ürünler", slug: "tum-urunler" }
   ]);
+  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [filterLoading, setFilterLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -59,6 +61,11 @@ export default function ProductsList() {
   const [searchDebounceTimer, setSearchDebounceTimer] = useState(null);
   const [minPriceDebounceTimer, setMinPriceDebounceTimer] = useState(null);
   const [maxPriceDebounceTimer, setMaxPriceDebounceTimer] = useState(null);
+
+  // Component mount olduğunda
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Arama terimini debounce et (gecikmeli uygula)
   useEffect(() => {

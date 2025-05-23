@@ -1,626 +1,937 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
-import { useAuth } from '@/context/AuthContext';
-import { useCart } from '@/context/CartContext';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { toast } from 'react-hot-toast';
-import Loader from '@/components/Loader';
-import { FaMoneyBillAlt, FaCreditCard, FaRegCreditCard, FaTruck, FaCheck, FaFileAlt, FaInfoCircle, FaPlus } from 'react-icons/fa';
-import { UserService, OrderService, CartService } from '@/services';
+import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
+import { useAuth } from "@/context/AuthContext";
+import { useCart } from "@/context/CartContext";
+import { useLoader } from "@/context/LoaderContext";
+import { useRouter } from "next/navigation";
+import CustomLink from "@/components/CustomLink";
+import Loader from "@/components/Loader";
+import PageLoader from "@/components/PageLoader";
+import {
+  FaTruck,
+  FaCheck,
+  FaPlus,
+  FaCreditCard,
+  FaMoneyBillAlt,
+  FaShippingFast,
+} from "react-icons/fa";
+import { UserService, OrderService } from "@/services";
 
-const AddressDrawer = ({ isOpen, onClose, guestInfo, setGuestInfo }) => {
-  const [emailCorrected, setEmailCorrected] = useState(false);
-  const [emailCorrection, setEmailCorrection] = useState('');
-  const emailTimerRef = useRef(null);
-  
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    }
-    return () => {
-      document.body.style.overflow = '';
-      // Komponent unmount olduğunda zamanlayıcıyı temizle
-      if (emailTimerRef.current) {
-        clearTimeout(emailTimerRef.current);
-      }
-    };
-  }, [isOpen]);
-
-  if (!isOpen) return null;
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    
-    // Önce state'i hemen güncelle ki kullanıcı yazdığını görsün
-    const updatedInfo = {
-      ...guestInfo,
-      [name]: value
-    };
-    
-    setGuestInfo(updatedInfo);
-    
-    // E-posta düzeltme işlemi
-    if (name === 'email' && value.includes('@')) {
-      // Önceki zamanlayıcıyı temizle
-      if (emailTimerRef.current) {
-        clearTimeout(emailTimerRef.current);
-      }
-      
-      // Yeni bir zamanlayıcı oluştur - 2 saniye gecikme ile
-      emailTimerRef.current = setTimeout(() => {
-        const originalValue = value;
-        const correctedValue = correctEmailTypos(value);
-        
-        // Eğer bir düzeltme yapıldıysa
-        if (correctedValue !== originalValue) {
-          // State'i düzeltilmiş değerle güncelle
-          const correctedInfo = {
-            ...guestInfo,
-            email: correctedValue
-          };
-          
-          setGuestInfo(correctedInfo);
-          
-          // LocalStorage'ı güncelle
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('guestInfo', JSON.stringify(correctedInfo));
-          }
-          
-          // Düzeltme bildirimi göster
-          setEmailCorrected(true);
-          setEmailCorrection(`${originalValue} → ${correctedValue}`);
-          
-          // 3 saniye sonra bildirimi kaldır
-          setTimeout(() => {
-            setEmailCorrected(false);
-          }, 3000);
-        }
-      }, 2000); // 2 saniye bekle
-    }
-    
-    // LocalStorage'a kaydet
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('guestInfo', JSON.stringify(updatedInfo));
-    }
-  };
-
-  // E-posta yazım hatalarını düzeltme fonksiyonu
-  const correctEmailTypos = (email) => {
-    if (!email || !email.includes('@')) return email;
-    
-    const [username, domain] = email.split('@');
-    
-    // Yaygın domain yazım hatalarını düzeltme
-    const commonDomains = {
-      // Gmail varyasyonları
-      'gmail.co': 'gmail.com',
-      'gmail.cm': 'gmail.com',
-      'gmail.comm': 'gmail.com',
-      'gmail.con': 'gmail.com',
-      'gmail.ocm': 'gmail.com',
-      'gmail.om': 'gmail.com',
-      'gmai.com': 'gmail.com',
-      'gmial.com': 'gmail.com',
-      'gmil.com': 'gmail.com',
-      'gmial.com': 'gmail.com',
-      'gmall.com': 'gmail.com',
-      'gamil.com': 'gmail.com',
-      'gemail.com': 'gmail.com',
-      
-      // Hotmail varyasyonları
-      'hotmail.co': 'hotmail.com',
-      'hotmail.cm': 'hotmail.com',
-      'hotmail.comm': 'hotmail.com',
-      'hotmail.con': 'hotmail.com', 
-      'hotmail.om': 'hotmail.com',
-      'hotmal.com': 'hotmail.com',
-      'hotmai.com': 'hotmail.com',
-      'hotmail.coml': 'hotmail.com',
-      'hotmial.com': 'hotmail.com',
-      'homtail.com': 'hotmail.com',
-      
-      // Yahoo varyasyonları
-      'yahoo.co': 'yahoo.com',
-      'yahoo.cm': 'yahoo.com',
-      'yahoo.comm': 'yahoo.com',
-      'yahoo.con': 'yahoo.com',
-      'yaho.com': 'yahoo.com',
-      'yahooo.com': 'yahoo.com',
-      'yahooo.com': 'yahoo.com',
-      'yaho.com': 'yahoo.com',
-      'yaoo.com': 'yahoo.com',
-      
-      // Outlook varyasyonları
-      'outlook.co': 'outlook.com',
-      'outlook.cm': 'outlook.com',
-      'outlook.con': 'outlook.com',
-      'outlook.comm': 'outlook.com',
-      'outloo.com': 'outlook.com',
-      'outlok.com': 'outlook.com',
-      
-      // Diğer yaygın domainler
-      'yandex.co': 'yandex.com',
-      'iclod.com': 'icloud.com',
-      'icoud.com': 'icloud.com',
-      'icloud.co': 'icloud.com'
-    };
-    
-    if (commonDomains[domain]) {
-      return `${username}@${commonDomains[domain]}`;
-    }
-    
-    return email;
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    // LocalStorage'a kaydet
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('guestInfo', JSON.stringify(guestInfo));
-    }
-    
-    onClose();
-    
-    // Modal kapandıktan sonra sipariş butonuna scroll yap
-    setTimeout(() => {
-      const orderButton = document.getElementById('order-submit-button');
-      if (orderButton) {
-        // Smooth scroll ile butonun bulunduğu yere kaydır
-        orderButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }, 300); // Modal kapanma animasyonu için kısa bir gecikme
-  };
-
-  return (
-     <div className="fixed inset-0 z-50 overflow-hidden">
-      <div className="flex items-center justify-center min-h-screen text-center">
-        {/* Arka plan overlay */}
-        <div className="fixed inset-0 transition-opacity" onClick={onClose}>
-          <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-        </div>
-
-        {/* Modal içeriği - mobilde tam ekran */}
-        <div 
-          className="fixed inset-0 bg-white w-full h-full sm:static sm:inline-block sm:align-middle sm:bg-white sm:rounded-lg sm:text-left sm:shadow-xl sm:transform sm:transition-all sm:h-auto sm:max-h-[90vh] sm:max-w-lg sm:rounded-lg sm:relative z-50"
-          onClick={e => e.stopPropagation()}
-        >
-          <div className="px-4 py-6 bg-orange-500 sticky top-0 z-10 sm:rounded-t-lg">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-medium text-white">Teslimat Adresiniz</h2>
-              <button 
-                onClick={onClose}
-                className="text-white hover:text-gray-200 focus:outline-none"
-              >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <p className="mt-1 text-sm text-orange-100">Lütfen sipariş teslimatı için adres bilgilerinizi girin.</p>
-          </div>
-
-          <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 80px)' }}>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700">Ad Soyad *</label>
-                  <input
-                    type="text"
-                    name="fullName"
-                    value={guestInfo.fullName}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-orange-500 focus:border-orange-500"
-                    placeholder="Ahmet Yılmaz"
-                    required
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">E-posta *</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={guestInfo.email}
-                  onChange={handleChange}
-                  className={`mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-orange-500 focus:border-orange-500 ${emailCorrected ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}
-                  placeholder="ornek@mail.com"
-                  required
-                />
-                {emailCorrected && (
-                  <div className="mt-1 text-xs text-green-600 animate-pulse">
-                    <span>Düzeltildi: {emailCorrection}</span>
-                  </div>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Telefon *</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-gray-500 sm:text-sm">+90</span>
-                  </div>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={guestInfo.phone}
-                    onChange={handleChange}
-                    className="pl-12 mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-orange-500 focus:border-orange-500"
-                    placeholder="5XX XXX XX XX"
-                    required
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Adres *</label>
-                <textarea
-                  name="address"
-                  value={guestInfo.address}
-                  onChange={handleChange}
-                  rows="3"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-orange-500 focus:border-orange-500"
-                  placeholder="Mahalle, Cadde, Sokak, Bina No, Daire No"
-                  required
-                ></textarea>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">İl *</label>
-                  <input
-                    type="text"
-                    name="city"
-                    value={guestInfo.city}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-orange-500 focus:border-orange-500"
-                    placeholder="İstanbul"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">İlçe *</label>
-                  <input
-                    type="text"
-                    name="district"
-                    value={guestInfo.district}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-orange-500 focus:border-orange-500"
-                    placeholder="Kadıköy"
-                    required
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Posta Kodu</label>
-                <input
-                  type="text"
-                  name="postalCode"
-                  value={guestInfo.postalCode}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-orange-500 focus:border-orange-500"
-                  placeholder="34000"
-                />
-              </div>
-              <div className="pt-4">
-                <button
-                  type="submit"
-                  className="w-full bg-orange-500 border border-transparent rounded-md shadow-sm py-3 px-4 text-base font-medium text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
-                >
-                  Adresimi Kaydet ve Devam Et
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 const PaymentPage = () => {
   const { user, authLoading, token } = useAuth();
-  const { cartItems, cartTotal, discount, couponCode, discountedTotal, clearCart } = useCart();
+  const {
+    cartItems,
+    cartTotal,
+    discount,
+    couponCode,
+    discountedTotal,
+    clearCart,
+    applyCoupon,
+    removeCoupon,
+    couponLoading,
+  } = useCart();
+  const { showLoader } = useLoader();
   const router = useRouter();
-  const formRef = useRef(null);
-  
+
+  const [mounted, setMounted] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [processing, setProcessing] = useState(false);
+
+  // Form states
+  const [discountCodeInput, setDiscountCodeInput] = useState("");
+  const [billingAddressSame, setBillingAddressSame] = useState(true);
+  const [corporateInvoice, setCorporateInvoice] = useState(false);
+
+  // User addresses
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState('bank_transfer');
-  const [orderNotes, setOrderNotes] = useState('');
-  const [processing, setProcessing] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [agreeSalesContract, setAgreeSalesContract] = useState(false);
-  const [agreeInfoForm, setAgreeInfoForm] = useState(false);
-  const [showSalesContract, setShowSalesContract] = useState(false);
-  const [showInfoForm, setShowInfoForm] = useState(false);
 
-  // Misafir kullanıcılar için form bilgileri
-  const [guestInfo, setGuestInfo] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    district: '',
-    postalCode: ''
+  // Shipping and payment
+  const [selectedShipping, setSelectedShipping] = useState("free");
+  const [paymentMethod, setPaymentMethod] = useState("bank_transfer"); // Changed default to bank transfer
+  const [orderNotes, setOrderNotes] = useState("");
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+
+  // Card info
+  const [cardInfo, setCardInfo] = useState({
+    number: "",
+    name: "",
+    expiry: "",
+    cvc: "",
   });
 
-  // Adres drawer kontrolü
-  const [addressDrawerOpen, setAddressDrawerOpen] = useState(false);
+  // Guest info
+  const [guestInfo, setGuestInfo] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    address: "",
+    city: "",
+    district: "",
+    postalCode: "",
+  });
 
-  // Sipariş Butonuna bir id ekleyelim ve ref kullanalım
-  const orderButtonRef = useRef(null);
+  // Mobile summary dropdown
+  const [isOrderSummaryOpen, setIsOrderSummaryOpen] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    
-    // LocalStorage'dan misafir bilgilerini yükle
-    if (typeof window !== 'undefined') {
-      const savedGuestInfo = localStorage.getItem('guestInfo');
-      if (savedGuestInfo) {
-        try {
-          const parsedInfo = JSON.parse(savedGuestInfo);
-          setGuestInfo(parsedInfo);
-        } catch (error) {
-          console.error('Guest info parsing error:', error);
-        }
-      }
-    }
-  }, []);
-  
-  // Custom scrollbar stil tanımı
-  useEffect(() => {
-    // Özel scrollbar stilini ekle
-    const style = document.createElement('style');
-    style.innerHTML = `
-      .custom-scrollbar::-webkit-scrollbar {
-        width: 6px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #F97316;
-        border-radius: 10px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: #e45d03;
-      }
-    `;
-    document.head.appendChild(style);
-    
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
+  // Form validation errors
+  const [errors, setErrors] = useState({
+    email: "",
+    fullName: "",
+    address: "",
+    city: "",
+    district: "",
+    phone: "",
+    cardNumber: "",
+    cardName: "",
+    cardExpiry: "",
+    cardCvc: "",
+  });
 
-  /* Kullanıcı kontrolünü kaldırıyoruz
-  // Kullanıcı giriş yapmamışsa login sayfasına yönlendir
-  useEffect(() => {
-    if (mounted && !authLoading && !user) {
-      toast.error('Lütfen önce giriş yapın');
-      router.push('/login?returnUrl=/odeme');
-    }
-  }, [mounted, authLoading, user, router]);
-  */
-  
-  const shippingCost = cartTotal < 1500 ? 100 : 0;
-  
-  // Kapıda ödeme ücreti
-  const cashOnDeliveryFee = paymentMethod === 'cash_on_delivery' ? 30 : 0;
-  
-  // Final toplam
-  const finalTotal = discountedTotal + shippingCost + cashOnDeliveryFee;
-  
-  // Sepet boşsa ana sayfaya yönlendir
-  useEffect(() => {
-    if (mounted && cartItems.length === 0) {
-      toast.error('Sepetiniz boş');
-      router.push('/');
-    }
-  }, [mounted, cartItems, router]);
-  
-  // Adres listesini yükle (kullanıcı giriş yapmışsa)
-  useEffect(() => {
-    const fetchAddresses = async () => {
-      if (!user) return;
-      
-      try {
-        // UserService ile adresleri getir
-        const addresses = await UserService.getAddresses();
-        setAddresses(addresses);
-        
-        // Varsayılan adresi seç ya da ilk adresi seç
-        const defaultAddress = addresses.find(addr => addr.is_default);
-        if (defaultAddress) {
-          setSelectedAddress(defaultAddress.id);
-        } else if (addresses.length > 0) {
-          setSelectedAddress(addresses[0].id);
-        }
-      } catch (error) {
-        console.error('Adres yüklenirken hata:', error);
-      }
-    };
-    
-    if (mounted && user) {
-      fetchAddresses();
-    }
-  }, [mounted, user]);
-  
-  // Misafir bilgilerinde değişiklik olduğunda
-  const handleGuestInfoChange = (e) => {
-    const { name, value } = e.target;
-    
-    // E-posta düzeltme işlemi
-    let correctedValue = value;
-    if (name === 'email') {
-      correctedValue = correctEmailTypos(value);
-    }
-    
-    const updatedInfo = {
-      ...guestInfo,
-      [name]: correctedValue
-    };
-    
-    setGuestInfo(updatedInfo);
-    
-    // LocalStorage'a kaydet
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('guestInfo', JSON.stringify(updatedInfo));
+  // Input refs for focus management
+  const emailRef = useRef(null);
+  const fullNameRef = useRef(null);
+  const addressRef = useRef(null);
+  const cityRef = useRef(null);
+  const districtRef = useRef(null);
+  const phoneRef = useRef(null);
+  const cardNumberRef = useRef(null);
+  const cardNameRef = useRef(null);
+  const cardExpiryRef = useRef(null);
+  const cardCvcRef = useRef(null);
+
+  // Validasyon kontrolü fonksiyonu (herhangi bir guestInfo objesi için)
+  const validateGuestInfo = (info) => {
+    if (!info) return false;
+
+    // E-posta kontrolü
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!info.email || !emailRegex.test(info.email)) return false;
+
+    // Ad Soyad kontrolü
+    if (!info.fullName || info.fullName.trim().length < 2) return false;
+    const nameRegex = /^[a-zA-ZçğıöşüÇĞIİÖŞÜ\s]+$/;
+    const trimmedName = info.fullName.trim();
+    const words = trimmedName.split(/\s+/).filter((word) => word.length > 0);
+    if (
+      !nameRegex.test(trimmedName) ||
+      words.length < 2 ||
+      !words.every((word) => word.length >= 2)
+    )
+      return false;
+
+    // Adres kontrolü
+    if (!info.address || info.address.trim().length < 10) return false;
+    const hasNumber = /\d/.test(info.address);
+    const addressWords = info.address.trim().split(/\s+/);
+    const hasValidWords = addressWords.some((word) => word.length >= 3);
+    if (!hasNumber || !hasValidWords) return false;
+
+    // İl kontrolü
+    if (!info.city || info.city.trim().length < 3) return false;
+    const cityRegex = /^[a-zA-ZçğıöşüÇĞIİÖŞÜ\s]+$/;
+    if (!cityRegex.test(info.city.trim()) || info.city.trim().length > 50)
+      return false;
+
+    // İlçe kontrolü
+    if (!info.district || info.district.trim().length < 3) return false;
+    const districtRegex = /^[a-zA-ZçğıöşüÇĞIİÖŞÜ\s]+$/;
+    if (
+      !districtRegex.test(info.district.trim()) ||
+      info.district.trim().length > 50
+    )
+      return false;
+
+    // Telefon kontrolü
+    if (!info.phone || info.phone.trim().length < 10) return false;
+    const phoneRegex = /^[0-9\s\-\(\)\+]+$/;
+    const cleanPhone = info.phone.replace(/[\s\-\(\)\+]/g, "");
+    if (
+      !phoneRegex.test(info.phone) ||
+      cleanPhone.length < 10 ||
+      cleanPhone.length > 15 ||
+      !/^\d+$/.test(cleanPhone)
+    )
+      return false;
+
+    return true;
+  };
+
+  // Field success validation helper
+  const isFieldValid = (fieldName) => {
+    if (!guestInfo && !cardInfo) return false;
+
+    switch (fieldName) {
+      case "email":
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return guestInfo.email && emailRegex.test(guestInfo.email);
+      case "fullName":
+        if (!guestInfo.fullName || guestInfo.fullName.trim().length < 2)
+          return false;
+        // Sadece harfler, boşluk ve Türkçe karakterler
+        const nameRegex = /^[a-zA-ZçğıöşüÇĞIİÖŞÜ\s]+$/;
+        const trimmedName = guestInfo.fullName.trim();
+        // En az 2 kelime olmalı (ad + soyad)
+        const words = trimmedName
+          .split(/\s+/)
+          .filter((word) => word.length > 0);
+        return (
+          nameRegex.test(trimmedName) &&
+          words.length >= 2 &&
+          words.every((word) => word.length >= 2)
+        );
+      case "address":
+        if (!guestInfo.address || guestInfo.address.trim().length < 10)
+          return false;
+        // Adres en az rakam içermeli (sokak no, daire no vb.)
+        const hasNumber = /\d/.test(guestInfo.address);
+        // Çok kısa kelimeler (aa, bb gibi) engelle
+        const addressWords = guestInfo.address.trim().split(/\s+/);
+        const hasValidWords = addressWords.some((word) => word.length >= 3);
+        return hasNumber && hasValidWords;
+      case "city":
+        if (!guestInfo.city || guestInfo.city.trim().length < 3) return false;
+        // Sadece harfler, boşluk ve Türkçe karakterler
+        const cityRegex = /^[a-zA-ZçğıöşüÇĞIİÖŞÜ\s]+$/;
+        return (
+          cityRegex.test(guestInfo.city.trim()) &&
+          guestInfo.city.trim().length <= 50
+        );
+      case "district":
+        if (!guestInfo.district || guestInfo.district.trim().length < 3)
+          return false;
+        // Sadece harfler, boşluk ve Türkçe karakterler
+        const districtRegex = /^[a-zA-ZçğıöşüÇĞIİÖŞÜ\s]+$/;
+        return (
+          districtRegex.test(guestInfo.district.trim()) &&
+          guestInfo.district.trim().length <= 50
+        );
+      case "phone":
+        if (!guestInfo.phone || guestInfo.phone.trim().length < 10)
+          return false;
+        // Sadece rakam ve boşluk, tire, parantez
+        const phoneRegex = /^[0-9\s\-\(\)\+]+$/;
+        const cleanPhone = guestInfo.phone.replace(/[\s\-\(\)\+]/g, "");
+        // Temizlenmiş telefon 10-15 karakter arası olmalı ve sadece rakam
+        return (
+          phoneRegex.test(guestInfo.phone) &&
+          cleanPhone.length >= 10 &&
+          cleanPhone.length <= 15 &&
+          /^\d+$/.test(cleanPhone)
+        );
+      case "cardNumber":
+        if (!cardInfo.number) return false;
+        const cardNumber = cardInfo.number.replace(/\s/g, "");
+        // Sadece rakam ve 13-19 karakter arası
+        return /^\d{13,19}$/.test(cardNumber);
+      case "cardName":
+        if (!cardInfo.name || cardInfo.name.trim().length < 2) return false;
+        // Sadece harfler, boşluk ve Türkçe karakterler
+        const cardNameRegex = /^[a-zA-ZçğıöşüÇĞIİÖŞÜ\s]+$/;
+        return cardNameRegex.test(cardInfo.name.trim());
+      case "cardExpiry":
+        if (!cardInfo.expiry || cardInfo.expiry.trim().length < 4) return false;
+        // MM/YY veya MM/YYYY formatı
+        const expiryRegex = /^(0[1-9]|1[0-2])\/([0-9]{2}|[0-9]{4})$/;
+        return expiryRegex.test(cardInfo.expiry.trim());
+      case "cardCvc":
+        if (!cardInfo.cvc) return false;
+        // Sadece rakam ve 3-4 karakter
+        return /^\d{3,4}$/.test(cardInfo.cvc);
+      default:
+        return false;
     }
   };
 
+  // Get field CSS classes based on validation state
+  const getFieldClasses = (fieldName) => {
+    const baseClasses =
+      "w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-colors";
+    const phoneBaseClasses =
+      "flex-1 px-4 py-3 border rounded-r-lg focus:outline-none focus:ring-2 focus:border-transparent transition-colors";
+
+    const classes = fieldName === "phone" ? phoneBaseClasses : baseClasses;
+
+    if (errors[fieldName]) {
+      return `${classes} border-red-500 bg-red-50 focus:ring-red-500`;
+    } else if (isFieldValid(fieldName)) {
+      return `${classes} border-green-500 bg-green-50 focus:ring-green-500`;
+    } else {
+      return `${classes} border-gray-300 focus:ring-orange-500`;
+    }
+  };
+
+  // Google Analytics tracking for payment info
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.dataLayer && cartItems.length > 0 && paymentMethod) {
+    if (
+      typeof window !== "undefined" &&
+      window.dataLayer &&
+      cartItems.length > 0 &&
+      paymentMethod
+    ) {
       window.dataLayer.push({
         event: "add_payment_info",
         ecommerce: {
           currency: "TRY",
-          payment_type: paymentMethod, // örn: bank_transfer, cash_on_delivery
-          items: cartItems.map(item => ({
+          payment_type:
+            paymentMethod === "bank_transfer"
+              ? "bank_transfer"
+              : paymentMethod === "credit_card"
+              ? "credit_card"
+              : "cash_on_delivery",
+          items: cartItems.map((item) => ({
             item_id: item.id,
             item_name: item.name,
             item_brand: "Kaşarcım",
-            item_category: item.category_name || item.category?.name || "Peynir",
+            item_category:
+              item.category_name || item.category?.name || "Peynir",
             price: item.currentPrice || item.price,
-            quantity: item.quantity
-          }))
-        }
+            quantity: item.quantity,
+          })),
+        },
       });
     }
-  }, [paymentMethod]);
-  
+  }, [paymentMethod, cartItems]);
+
+  useEffect(() => {
+    setMounted(true);
+
+    // Sync discount code input with current coupon
+    if (couponCode) {
+      setDiscountCodeInput(couponCode);
+    }
+
+    // LocalStorage'dan misafir bilgilerini yükle
+    if (typeof window !== "undefined") {
+      const savedGuestInfo = localStorage.getItem("guestInfo");
+      if (savedGuestInfo) {
+        try {
+          const parsedInfo = JSON.parse(savedGuestInfo);
+          setGuestInfo((prev) => ({ ...prev, ...parsedInfo }));
+
+          // Validasyon kontrolü yap, hepsi geçerliyse ödeme adımına geç
+          if (validateGuestInfo(parsedInfo)) {
+            setCurrentStep(3);
+            setSelectedShipping("free");
+          } else {
+            // Validasyon hatası varsa adres adımında kal
+            setCurrentStep(1);
+          }
+        } catch (error) {
+          console.error("Guest info parsing error:", error);
+        }
+      }
+    }
+  }, [cartItems, couponCode]);
+
+  // Sepet boşsa ürünler sayfasına yönlendir
+  useEffect(() => {
+    if (mounted && cartItems.length === 0) {
+      showLoader();
+      router.push('/urunler');
+    }
+  }, [mounted, cartItems, router, showLoader]);
+
+  // Load user addresses
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      if (!user) return;
+
+      try {
+        const addresses = await UserService.getAddresses();
+        setAddresses(addresses);
+
+        // Varsayılan adresi seç ya da ilk adresi seç
+        const defaultAddress = addresses.find((addr) => addr.is_default);
+        if (defaultAddress) {
+          setSelectedAddress(defaultAddress.id);
+          // Set guest info with default address data
+          setGuestInfo({
+            fullName: `${defaultAddress.first_name || ""} ${
+              defaultAddress.last_name || ""
+            }`.trim(),
+            email: user.email || "",
+            phone: defaultAddress.phone_number || "",
+            address: defaultAddress.address || "",
+            city: defaultAddress.city || "",
+            district: defaultAddress.district || "",
+            postalCode: defaultAddress.postal_code || "",
+          });
+
+          // Validasyon kontrolü ile adım belirleme
+          if (currentStep === 1 && !isEditingAddress) {
+            const addressInfo = {
+              fullName: `${defaultAddress.first_name || ""} ${
+                defaultAddress.last_name || ""
+              }`.trim(),
+              email: user.email || "",
+              phone: defaultAddress.phone_number || "",
+              address: defaultAddress.address || "",
+              city: defaultAddress.city || "",
+              district: defaultAddress.district || "",
+              postalCode: defaultAddress.postal_code || "",
+            };
+
+            setTimeout(() => {
+              if (validateGuestInfo(addressInfo)) {
+                setCurrentStep(3);
+                setSelectedShipping("free");
+              }
+            }, 100);
+          }
+        } else if (addresses.length > 0) {
+          setSelectedAddress(addresses[0].id);
+          // Set guest info with first address data
+          const firstAddress = addresses[0];
+          setGuestInfo({
+            fullName: `${firstAddress.first_name || ""} ${
+              firstAddress.last_name || ""
+            }`.trim(),
+            email: user.email || "",
+            phone: firstAddress.phone_number || "",
+            address: firstAddress.address || "",
+            city: firstAddress.city || "",
+            district: firstAddress.district || "",
+            postalCode: firstAddress.postal_code || "",
+          });
+
+          // Validasyon kontrolü ile adım belirleme
+          if (currentStep === 1 && !isEditingAddress) {
+            const addressInfo = {
+              fullName: `${firstAddress.first_name || ""} ${
+                firstAddress.last_name || ""
+              }`.trim(),
+              email: user.email || "",
+              phone: firstAddress.phone_number || "",
+              address: firstAddress.address || "",
+              city: firstAddress.city || "",
+              district: firstAddress.district || "",
+              postalCode: firstAddress.postal_code || "",
+            };
+
+            setTimeout(() => {
+              if (validateGuestInfo(addressInfo)) {
+                setCurrentStep(3);
+                setSelectedShipping("free");
+              }
+            }, 100);
+          }
+        }
+      } catch (error) {
+        console.error("Adres yüklenirken hata:", error);
+      }
+    };
+
+    if (mounted && user) {
+      fetchAddresses();
+    }
+  }, [mounted, user, isEditingAddress]);
+
+  // Update guest info when selected address changes
+  useEffect(() => {
+    if (user && addresses.length > 0 && selectedAddress) {
+      const address = addresses.find((addr) => addr.id === selectedAddress);
+      if (address) {
+        setGuestInfo({
+          fullName: `${address.first_name || ""} ${
+            address.last_name || ""
+          }`.trim(),
+          email: user.email || "",
+          phone: address.phone_number || "",
+          address: address.address || "",
+          city: address.city || "",
+          district: address.district || "",
+          postalCode: address.postal_code || "",
+        });
+        // Eğer şu anda 1. adımda değilse, adım değiştirme
+        if (currentStep === 1 && !isEditingAddress) {
+          setCurrentStep(3);
+          setSelectedShipping("free");
+        }
+      }
+    }
+  }, [selectedAddress, addresses, user, currentStep, isEditingAddress]);
+
   // E-posta yazım hatalarını düzeltme fonksiyonu
   const correctEmailTypos = (email) => {
-    if (!email || !email.includes('@')) return email;
-    
-    const [username, domain] = email.split('@');
-    
+    if (!email || !email.includes("@")) return email;
+
+    const [username, domain] = email.split("@");
+
     // Yaygın domain yazım hatalarını düzeltme
     const commonDomains = {
       // Gmail varyasyonları
-   
-      'gmal.com': 'gmail.com',
-      'gmail.cm': 'gmail.com',
-      'gmail.comm': 'gmail.com',
-      'gmail.con': 'gmail.com',
-      'gmail.ocm': 'gmail.com',
-      'gmail.om': 'gmail.com',
-      'gmai.com': 'gmail.com',
-      'gmial.com': 'gmail.com',
-      'gmil.com': 'gmail.com',
-      'gmial.com': 'gmail.com',
-      'gmall.com': 'gmail.com',
-      'gamil.com': 'gmail.com',
-      'gemail.com': 'gmail.com',
-      
+      "gmail.co": "gmail.com",
+      "gmail.cm": "gmail.com",
+      "gmail.comm": "gmail.com",
+      "gmail.con": "gmail.com",
+      "gmail.ocm": "gmail.com",
+      "gmail.om": "gmail.com",
+      "gmai.com": "gmail.com",
+      "gmial.com": "gmail.com",
+      "gmil.com": "gmail.com",
+      "gmall.com": "gmail.com",
+      "gamil.com": "gmail.com",
+      "gemail.com": "gmail.com",
+
       // Hotmail varyasyonları
-      'hotmail.co': 'hotmail.com',
-      'hotmail.cm': 'hotmail.com',
-      'hotmail.comm': 'hotmail.com',
-      'hotmail.con': 'hotmail.com', 
-      'hotmail.om': 'hotmail.com',
-      'hotmal.com': 'hotmail.com',
-      'hotmai.com': 'hotmail.com',
-      'hotmail.coml': 'hotmail.com',
-      'hotmial.com': 'hotmail.com',
-      'homtail.com': 'hotmail.com',
-      
+      "hotmail.co": "hotmail.com",
+      "hotmail.cm": "hotmail.com",
+      "hotmail.comm": "hotmail.com",
+      "hotmail.con": "hotmail.com",
+      "hotmail.om": "hotmail.com",
+      "hotmal.com": "hotmail.com",
+      "hotmai.com": "hotmail.com",
+      "hotmail.coml": "hotmail.com",
+      "hotmial.com": "hotmail.com",
+      "homtail.com": "hotmail.com",
+
       // Yahoo varyasyonları
-      'yahoo.co': 'yahoo.com',
-      'yahoo.cm': 'yahoo.com',
-      'yahoo.comm': 'yahoo.com',
-      'yahoo.con': 'yahoo.com',
-      'yaho.com': 'yahoo.com',
-      'yahooo.com': 'yahoo.com',
-      'yahooo.com': 'yahoo.com',
-      'yaho.com': 'yahoo.com',
-      'yaoo.com': 'yahoo.com',
-      
+      "yahoo.co": "yahoo.com",
+      "yahoo.cm": "yahoo.com",
+      "yahoo.comm": "yahoo.com",
+      "yahoo.con": "yahoo.com",
+      "yaho.com": "yahoo.com",
+      "yahooo.com": "yahoo.com",
+      "yaoo.com": "yahoo.com",
+
       // Outlook varyasyonları
-      'outlook.co': 'outlook.com',
-      'outlook.cm': 'outlook.com',
-      'outlook.con': 'outlook.com',
-      'outlook.comm': 'outlook.com',
-      'outloo.com': 'outlook.com',
-      'outlok.com': 'outlook.com',
-      
+      "outlook.co": "outlook.com",
+      "outlook.cm": "outlook.com",
+      "outlook.con": "outlook.com",
+      "outlook.comm": "outlook.com",
+      "outloo.com": "outlook.com",
+      "outlok.com": "outlook.com",
+
       // Diğer yaygın domainler
-      'yandex.co': 'yandex.com',
-      'iclod.com': 'icloud.com',
-      'icoud.com': 'icloud.com',
-      'icloud.co': 'icloud.com'
+      "yandex.co": "yandex.com",
+      "iclod.com": "icloud.com",
+      "icoud.com": "icloud.com",
+      "icloud.co": "icloud.com",
     };
-    
+
     if (commonDomains[domain]) {
       return `${username}@${commonDomains[domain]}`;
     }
-    
+
     return email;
   };
-  
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Kullanıcı giriş yapmışsa adres kontrolü yap
-    if (user && !selectedAddress) {
-      toast.error('Lütfen bir adres seçin');
-      return;
+
+  if (!mounted || authLoading) {
+    return <PageLoader />;
+  }
+
+  if (cartItems.length === 0) {
+    return <PageLoader />;
+  }
+
+  const handleGuestInfoChange = (e) => {
+    const { name, value } = e.target;
+
+    // Hata mesajını temizle
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
-    
-    // Misafir kullanıcı ise form kontrolü yap
-    if (!user) {
-      if (!guestInfo.fullName || !guestInfo.email || !guestInfo.phone || !guestInfo.address || !guestInfo.city || !guestInfo.district) {
-        toast.error('Lütfen tüm gerekli alanları doldurun');
+
+    // E-posta düzeltme işlemi
+    let correctedValue = value;
+    if (name === "email") {
+      correctedValue = correctEmailTypos(value);
+    }
+
+    const updatedInfo = {
+      ...guestInfo,
+      [name]: correctedValue,
+    };
+
+    setGuestInfo(updatedInfo);
+
+    // LocalStorage'a kaydet
+    if (typeof window !== "undefined") {
+      localStorage.setItem("guestInfo", JSON.stringify(updatedInfo));
+    }
+  };
+
+  const handleApplyDiscount = () => {
+    if (discountCodeInput.trim()) {
+      applyCoupon(discountCodeInput.trim());
+    }
+  };
+
+  const handleNextStep = () => {
+    if (currentStep === 1) {
+      // Error state'ini temizle
+      setErrors({
+        email: "",
+        fullName: "",
+        address: "",
+        city: "",
+        district: "",
+        phone: "",
+        cardNumber: "",
+        cardName: "",
+        cardExpiry: "",
+        cardCvc: "",
+      });
+
+      // Misafir kullanıcı için form validasyonu
+      if (!user) {
+        const newErrors = {};
+        let hasError = false;
+
+        // E-posta kontrolü
+        if (!guestInfo.email || guestInfo.email.trim() === "") {
+          newErrors.email = "E-posta adresi gereklidir";
+          hasError = true;
+        } else {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(guestInfo.email)) {
+            newErrors.email = "Geçerli bir e-posta adresi girin";
+            hasError = true;
+          }
+        }
+
+        // Ad Soyad kontrolü
+        if (!guestInfo.fullName || guestInfo.fullName.trim() === "") {
+          newErrors.fullName = "Ad Soyad gereklidir";
+          hasError = true;
+        } else {
+          const nameRegex = /^[a-zA-ZçğıöşüÇĞIİÖŞÜ\s]+$/;
+          const trimmedName = guestInfo.fullName.trim();
+          const words = trimmedName
+            .split(/\s+/)
+            .filter((word) => word.length > 0);
+
+          if (trimmedName.length < 2) {
+            newErrors.fullName = "Ad Soyad en az 2 karakter olmalıdır";
+            hasError = true;
+          } else if (!nameRegex.test(trimmedName)) {
+            newErrors.fullName = "Ad Soyad sadece harf içermelidir";
+            hasError = true;
+          } else if (words.length < 2) {
+            newErrors.fullName = "Ad ve soyadınızı girin";
+            hasError = true;
+          } else if (!words.every((word) => word.length >= 2)) {
+            newErrors.fullName = "Ad ve soyad en az 2 harfli olmalıdır";
+            hasError = true;
+          }
+        }
+
+        // Adres kontrolü
+        if (!guestInfo.address || guestInfo.address.trim() === "") {
+          newErrors.address = "Adres gereklidir";
+          hasError = true;
+        } else {
+          const address = guestInfo.address.trim();
+          const hasNumber = /\d/.test(address);
+          const addressWords = address.split(/\s+/);
+          const hasValidWords = addressWords.some((word) => word.length >= 3);
+
+          if (address.length < 10) {
+            newErrors.address = "Adres en az 10 karakter olmalıdır";
+            hasError = true;
+          } else if (!hasNumber) {
+            newErrors.address =
+              "Adres bir numara içermelidir (sokak no, daire no vb.)";
+            hasError = true;
+          } else if (!hasValidWords) {
+            newErrors.address = "Geçerli bir adres girin";
+            hasError = true;
+          }
+        }
+
+        // İl kontrolü
+        if (!guestInfo.city || guestInfo.city.trim() === "") {
+          newErrors.city = "İl gereklidir";
+          hasError = true;
+        } else {
+          const cityRegex = /^[a-zA-ZçğıöşüÇĞIİÖŞÜ\s]+$/;
+          const city = guestInfo.city.trim();
+
+          if (city.length < 3) {
+            newErrors.city = "İl en az 3 karakter olmalıdır";
+            hasError = true;
+          } else if (!cityRegex.test(city)) {
+            newErrors.city = "İl sadece harf içermelidir";
+            hasError = true;
+          } else if (city.length > 50) {
+            newErrors.city = "İl en fazla 50 karakter olmalıdır";
+            hasError = true;
+          }
+        }
+
+        // İlçe kontrolü
+        if (!guestInfo.district || guestInfo.district.trim() === "") {
+          newErrors.district = "İlçe gereklidir";
+          hasError = true;
+        } else {
+          const districtRegex = /^[a-zA-ZçğıöşüÇĞIİÖŞÜ\s]+$/;
+          const district = guestInfo.district.trim();
+
+          if (district.length < 3) {
+            newErrors.district = "İlçe en az 3 karakter olmalıdır";
+            hasError = true;
+          } else if (!districtRegex.test(district)) {
+            newErrors.district = "İlçe sadece harf içermelidir";
+            hasError = true;
+          } else if (district.length > 50) {
+            newErrors.district = "İlçe en fazla 50 karakter olmalıdır";
+            hasError = true;
+          }
+        }
+
+        // Telefon kontrolü
+        if (!guestInfo.phone || guestInfo.phone.trim() === "") {
+          newErrors.phone = "Telefon numarası gereklidir";
+          hasError = true;
+        } else {
+          const phoneRegex = /^[0-9\s\-\(\)\+]+$/;
+          const cleanPhone = guestInfo.phone.replace(/[\s\-\(\)\+]/g, "");
+
+          if (guestInfo.phone.length < 10) {
+            newErrors.phone = "Telefon numarası en az 10 karakter olmalıdır";
+            hasError = true;
+          } else if (!phoneRegex.test(guestInfo.phone)) {
+            newErrors.phone = "Telefon numarası sadece rakam içermelidir";
+            hasError = true;
+          } else if (cleanPhone.length < 10 || cleanPhone.length > 15) {
+            newErrors.phone =
+              "Geçerli bir telefon numarası girin (10-15 rakam)";
+            hasError = true;
+          } else if (!/^\d+$/.test(cleanPhone)) {
+            newErrors.phone = "Telefon numarası sadece rakam içermelidir";
+            hasError = true;
+          }
+        }
+
+        if (hasError) {
+          setErrors((prev) => ({ ...prev, ...newErrors }));
+
+          // İlk hatalı alana focus yap
+          setTimeout(() => {
+            if (newErrors.email && emailRef.current) {
+              emailRef.current.focus();
+            } else if (newErrors.fullName && fullNameRef.current) {
+              fullNameRef.current.focus();
+            } else if (newErrors.address && addressRef.current) {
+              addressRef.current.focus();
+            } else if (newErrors.city && cityRef.current) {
+              cityRef.current.focus();
+            } else if (newErrors.district && districtRef.current) {
+              districtRef.current.focus();
+            } else if (newErrors.phone && phoneRef.current) {
+              phoneRef.current.focus();
+            }
+          }, 100);
+
+          return;
+        }
+      }
+
+      // Kayıtlı kullanıcı için adres seçimi kontrolü
+      if (user && !selectedAddress) {
+        console.error("Lütfen bir adres seçin");
         return;
       }
-      
+
+      setIsEditingAddress(false); // Reset editing mode
+      setCurrentStep(3); // Skip cargo step, go directly to payment
+      setSelectedShipping("free");
+    }
+  };
+
+  const handlePrevStep = () => {
+    if (currentStep === 3) {
+      setCurrentStep(1); // Go back to address step
+    }
+  };
+
+  const handleCardInfoChange = (e) => {
+    const { name, value } = e.target;
+
+    // Kart hata mesajlarını temizle
+    const cardErrorMap = {
+      number: "cardNumber",
+      name: "cardName",
+      expiry: "cardExpiry",
+      cvc: "cardCvc",
+    };
+
+    const errorKey = cardErrorMap[name];
+    if (errorKey && errors[errorKey]) {
+      setErrors((prev) => ({ ...prev, [errorKey]: "" }));
+    }
+
+    setCardInfo((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleFinalPayment = async () => {
+    // Kullanıcı giriş yapmışsa adres kontrolü yap
+    if (user && !selectedAddress) {
+      console.error("Lütfen bir adres seçin");
+      return;
+    }
+
+    // Misafir kullanıcı ise form kontrolü yap
+    if (!user) {
+      if (
+        !guestInfo.fullName ||
+        !guestInfo.email ||
+        !guestInfo.phone ||
+        !guestInfo.address ||
+        !guestInfo.city ||
+        !guestInfo.district
+      ) {
+        console.error("Lütfen tüm gerekli alanları doldurun");
+        return;
+      }
+
       // E-posta doğrulaması
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(guestInfo.email)) {
-        toast.error('Lütfen geçerli bir e-posta adresi girin');
+        console.error("Lütfen geçerli bir e-posta adresi girin");
         return;
       }
-      
+
       // Telefon doğrulaması (basit)
       if (guestInfo.phone.length < 8) {
-        toast.error('Lütfen geçerli bir telefon numarası girin');
+        console.error("Lütfen geçerli bir telefon numarası girin");
         return;
       }
     }
-    
+
+    // Kredi kartı ödeme yöntemi seçilmişse kart bilgilerini kontrol et
+    if (paymentMethod === "credit_card") {
+      const newErrors = {};
+      let hasError = false;
+
+      // Kart numarası kontrolü
+      if (!cardInfo.number || cardInfo.number.trim() === "") {
+        newErrors.cardNumber = "Kart numarası gereklidir";
+        hasError = true;
+      } else {
+        const cardNumber = cardInfo.number.replace(/\s/g, "");
+        if (!/^\d{13,19}$/.test(cardNumber)) {
+          newErrors.cardNumber =
+            "Geçerli bir kart numarası girin (13-19 rakam)";
+          hasError = true;
+        }
+      }
+
+      // Kart üzerindeki isim kontrolü
+      if (!cardInfo.name || cardInfo.name.trim() === "") {
+        newErrors.cardName = "Kart üzerindeki isim gereklidir";
+        hasError = true;
+      } else {
+        const cardNameRegex = /^[a-zA-ZçğıöşüÇĞIİÖŞÜ\s]+$/;
+        const cardName = cardInfo.name.trim();
+
+        if (cardName.length < 2) {
+          newErrors.cardName =
+            "Kart üzerindeki isim en az 2 karakter olmalıdır";
+          hasError = true;
+        } else if (!cardNameRegex.test(cardName)) {
+          newErrors.cardName = "Kart üzerindeki isim sadece harf içermelidir";
+          hasError = true;
+        }
+      }
+
+      // Son kullanma tarihi kontrolü
+      if (!cardInfo.expiry || cardInfo.expiry.trim() === "") {
+        newErrors.cardExpiry = "Son kullanma tarihi gereklidir";
+        hasError = true;
+      } else {
+        const expiryRegex = /^(0[1-9]|1[0-2])\/([0-9]{2}|[0-9]{4})$/;
+        if (!expiryRegex.test(cardInfo.expiry.trim())) {
+          newErrors.cardExpiry = "Geçerli bir tarih girin (MM/YY formatında)";
+          hasError = true;
+        }
+      }
+
+      // CVC kontrolü
+      if (!cardInfo.cvc || cardInfo.cvc.trim() === "") {
+        newErrors.cardCvc = "CVC kodu gereklidir";
+        hasError = true;
+      } else if (!/^\d{3,4}$/.test(cardInfo.cvc)) {
+        newErrors.cardCvc = "CVC kodu 3-4 rakam olmalıdır";
+        hasError = true;
+      }
+
+      if (hasError) {
+        setErrors((prev) => ({ ...prev, ...newErrors }));
+
+        // İlk hatalı kart alanına focus yap
+        setTimeout(() => {
+          if (newErrors.cardNumber && cardNumberRef.current) {
+            cardNumberRef.current.focus();
+          } else if (newErrors.cardName && cardNameRef.current) {
+            cardNameRef.current.focus();
+          } else if (newErrors.cardExpiry && cardExpiryRef.current) {
+            cardExpiryRef.current.focus();
+          } else if (newErrors.cardCvc && cardCvcRef.current) {
+            cardCvcRef.current.focus();
+          }
+        }, 100);
+
+        return;
+      }
+    }
+
     setProcessing(true);
-    
+
     try {
+      // Kargo ücreti hesaplama
+      const shippingCost = (discountedTotal || cartTotal) < 1500 ? 100 : 0;
+
+      // Final toplam
+      const finalTotal = (discountedTotal || cartTotal) + shippingCost;
+
       // Sipariş verileri hazırla
       let orderData = {
-        items: cartItems.map(item => {
-          // Ondalık sayı formatını düzgün yapmak için
-          const price = typeof item.currentPrice === 'number' ? 
-            item.currentPrice.toFixed(2) : 
-            (typeof item.price === 'number' ? 
-              item.price.toFixed(2) : 
-              (item.currentPrice || item.price).toString());
-            
+        items: cartItems.map((item) => {
+          // İndirim kontrolü ve fiyat hesaplamaları
+          const hasDiscount =
+            item.active_discount !== null && item.active_discount !== undefined;
+          const originalPrice = parseFloat(item.price) || 0;
+          const currentPrice =
+            item.currentPrice !== undefined
+              ? parseFloat(item.currentPrice)
+              : parseFloat(item.price) || 0;
+          const discountAmount = hasDiscount ? originalPrice - currentPrice : 0;
+          const discountPercentage =
+            hasDiscount && item.active_discount?.discount_percentage
+              ? item.active_discount.discount_percentage
+              : hasDiscount
+              ? Math.round(
+                  ((originalPrice - currentPrice) / originalPrice) * 100
+                )
+              : 0;
+
           return {
             product_id: parseInt(item.id), // ID'yi integer'a çevirelim
             quantity: parseInt(item.quantity), // Quantity'yi integer'a çevirelim
-            price: price // String olarak fiyat
+            price: currentPrice.toFixed(2), // String olarak fiyat
           };
         }),
         coupon_code: couponCode || null,
-        payment_method: paymentMethod === 'cash_on_delivery' ? 'cash_on_delivery' : 'online',
+        payment_method:
+          paymentMethod === "cash_on_delivery"
+            ? "cash_on_delivery"
+            : paymentMethod === "bank_transfer"
+            ? "bank_transfer"
+            : "online",
         total_price: cartTotal,
-        discount: discount,
+        discount: discount || 0,
         shipping_cost: shippingCost,
         final_price: finalTotal,
-        notes: orderNotes
+        notes: orderNotes || "",
       };
-      
-      // Debug için konsola yazdır
-      //console.log('Sipariş verileri:', JSON.stringify(orderData));
-      
+
       // Kullanıcı giriş yapmışsa adres ID'sini ekle
       if (user) {
         orderData.address_id = selectedAddress;
@@ -633,18 +944,17 @@ const PaymentPage = () => {
           address: `${guestInfo.address}, ${guestInfo.district}`,
           city: guestInfo.city,
           district: guestInfo.district,
-          postal_code: guestInfo.postalCode || ''
+          postal_code: guestInfo.postalCode || "",
         };
       }
-      
+
       // API isteği için try-catch bloğu
       try {
         // OrderService ile sipariş oluştur
         const order = await OrderService.createOrder(orderData);
-        
-        // Ödeme isteğini kaldırdık - otomatik oluşuyor
-        // purchase event'ini gönder
-        if (typeof window !== 'undefined' && window.dataLayer) {
+
+        // Purchase event'ini gönder
+        if (typeof window !== "undefined" && window.dataLayer) {
           window.dataLayer.push({
             event: "purchase",
             ecommerce: {
@@ -652,725 +962,1181 @@ const PaymentPage = () => {
               value: parseFloat(finalTotal),
               currency: "TRY",
               payment_type: paymentMethod,
-              items: cartItems.map(item => ({
+              items: cartItems.map((item) => ({
                 item_id: item.id,
                 item_name: item.name,
                 price: parseFloat(item.currentPrice || item.price),
-                quantity: item.quantity
-              }))
-            }
+                quantity: item.quantity,
+              })),
+            },
           });
         }
 
-
-        
-        // Sepeti temizle
-        clearCart();
-      
         // Sipariş tamamlandı sayfasına yönlendir
         const redirectUrl = `/siparis-basarili?orderId=${order.id}&total=${finalTotal}&paymentMethod=${paymentMethod}`;
-      window.location.href = redirectUrl;
-    } catch (error) {
-        // API hata yanıtını ele al
-        console.error('API hatası:', error);
-      
-      let errorMessage = 'Bir hata oluştu';
         
+        // Loader'ı göster
+        showLoader();
+        
+        // Yönlendirme
+        window.location.href = redirectUrl;
+      } catch (error) {
+        // API hata yanıtını ele al
+        console.error("API hatası:", error);
+
+        let errorMessage = "Bir hata oluştu";
+
         // Hata yanıtını kontrol et
         if (error.response && error.response.data) {
           if (error.response.data.error) {
             errorMessage = error.response.data.error;
-          } else if (typeof error.response.data === 'string') {
+          } else if (typeof error.response.data === "string") {
             errorMessage = error.response.data;
           } else {
             errorMessage = JSON.stringify(error.response.data);
           }
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      toast.error(errorMessage);
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+
+        console.error(errorMessage);
       }
     } catch (error) {
-      console.error('Ödeme hatası:', error);
-      toast.error('İşlem sırasında bir hata oluştu');
+      console.error("Ödeme hatası:", error);
+      console.error("İşlem sırasında bir hata oluştu");
     } finally {
       setProcessing(false);
     }
   };
-  
-  // Form submit fonksiyonu
-  const submitOrder = () => {
-    if (formRef.current) {
-      // Adres kontrolü
-      if (user && !selectedAddress) {
-        toast.error('Lütfen bir adres seçin');
-        // Adres bölümüne scroll
-        document.querySelector('#address-section')?.scrollIntoView({ behavior: 'smooth' });
-        return;
-      }
-      
-      // Misafir kullanıcı için form kontrolü
-      if (!user) {
-        if (!guestInfo.fullName || !guestInfo.email || !guestInfo.phone || !guestInfo.address || !guestInfo.city || !guestInfo.district) {
-          toast.error('Lütfen adres bilgilerinizi eksiksiz doldurun');
-          setAddressDrawerOpen(true);
-          return;
-        }
-      }
-      
-      // Sözleşme onaylarını kontrol et
-      if (!agreeSalesContract) {
-        toast.error('Lütfen Mesafeli Satış Sözleşmesini kabul edin');
-        document.querySelector('#sales-contract')?.scrollIntoView({ behavior: 'smooth' });
-        document.querySelector('#sales-contract')?.focus();
-        return;
-      }
-      
-      if (!agreeInfoForm) {
-        toast.error('Lütfen Genel Bilgilendirme Sözleşmesi\'ni kabul edin');
-        document.querySelector('#info-form')?.scrollIntoView({ behavior: 'smooth' });
-        document.querySelector('#info-form')?.focus();
-        return;
-      }
-      
-      // Tüm koşullar sağlandıysa formu gönder
-      formRef.current.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-    }
-  };
-  
-  // Sipariş tamamlanabilir mi kontrolü (artık buton disabling için kullanılmayacak)
-  const canCompleteOrder = (user ? selectedAddress : 
-    (guestInfo.fullName && guestInfo.email && guestInfo.phone && guestInfo.address && guestInfo.city && guestInfo.district)) && 
-    agreeSalesContract && agreeInfoForm && !processing;
-  
-  if (!mounted || authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center py-16">
-        <Loader size="large" />
-      </div>
-    );
-  }
-  
-  // Satış sözleşmesi modal
-  const SalesContractModal = () => {
-    // Modal açıldığında scroll engelleme
-    useEffect(() => {
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = '';
-      };
-    }, []);
 
-    // Modal kapatma ve checkbox işaretleme işlevi
-    const handleConfirm = () => {
-      setAgreeSalesContract(true);
-      setShowSalesContract(false);
-    };
-
-    return (
-      <div className="fixed inset-0 z-50 overflow-hidden">
-        <div className="flex items-center justify-center min-h-screen text-center">
-          {/* Arka plan overlay */}
-          <div className="fixed inset-0 transition-opacity" onClick={() => setShowSalesContract(false)}>
-            <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-        </div>
-
-          {/* Modal içeriği - mobilde tam ekran */}
-          <div 
-            className="fixed inset-0 bg-white w-full h-full sm:static sm:inline-block sm:align-middle sm:bg-white sm:rounded-lg sm:text-left sm:shadow-xl sm:transform sm:transition-all sm:h-auto sm:max-h-[90vh] sm:max-w-3xl sm:rounded-lg sm:relative z-50"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="px-4 py-6 bg-orange-500 sticky top-0 z-10 sm:rounded-t-lg">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-medium text-white">Mesafeli Satış Sözleşmesi</h2>
-          <button 
-            onClick={() => setShowSalesContract(false)}
-                  className="text-white hover:text-gray-200 focus:outline-none"
-          >
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-          </button>
-        </div>
-            </div>
-
-            <div className="p-6 overflow-y-auto custom-scrollbar" style={{ maxHeight: 'calc(100vh - 80px)' }}>
-              <div className="prose max-w-none">
-                <h3 className="text-xl font-bold mb-4">MESAFELI SATIŞ SÖZLEŞMESI</h3>
-                
-                <h4 className="font-bold">1. TARAFLAR</h4>
-                <p><strong>SATICI:</strong><br />
-                Ünvanı: Kaşarcım<br />
-                Adresi: Çekmeköy/İstanbul<br />
-                Telefon: 0532 XXX XX XX<br />
-                E-mail: info@kasarcim.com<br />
-                </p>
-                
-                <p><strong>ALICI:</strong><br />
-                Adı/Soyadı/Ünvanı: Sipariş formunda belirtilen kişi<br />
-                Adresi: Sipariş formunda belirtilen adres<br />
-                Telefon: Sipariş formunda belirtilen telefon<br />
-                E-mail: Sipariş formunda belirtilen e-posta<br />
-                </p>
-                
-                <h4 className="font-bold mt-6">2. KONU</h4>
-                <p>İşbu sözleşmenin konusu, ALICI'nın SATICI'ya ait www.kasarcim.com internet sitesinden elektronik ortamda siparişini verdiği aşağıda nitelikleri ve satış fiyatı belirtilen ürünün satışı ve teslimi ile ilgili olarak 6502 sayılı Tüketicinin Korunması Hakkında Kanun ve Mesafeli Sözleşmeler Yönetmeliği hükümleri gereğince tarafların hak ve yükümlülüklerini düzenler.</p>
-                
-                <h4 className="font-bold mt-6">3. SÖZLEŞME KONUSU ÜRÜN/ÜRÜNLER BILLGISI</h4>
-                <p>Ürünlerin Cinsi ve Türü, Miktarı, Satış Bedeli sipariş formunda listelendiği gibidir.</p>
-                <p>Ödeme Şekli: Kredi Kartı/Banka Havalesi/Kapıda Ödeme</p>
-                <p>Teslimat Koşulları: Kargo veya Kurye ile adrese teslim</p>
-                <p>Teslim Süresi: Ürün siparişinden itibaren 3 iş günü içerisinde kargoya teslim edilecektir.</p>
-                <p>Teslimat Masrafları: Sepet tutarı 1500 TL üzeri alışverişlerde kargo ücretsizdir. 1500 TL altı siparişlerde kargo ücreti ALICI tarafından karşılanacaktır.</p>
-                
-                <h4 className="font-bold mt-6">4. GENEL HÜKÜMLER</h4>
-                <p>4.1 ALICI, www.kasarcim.com internet sitesinde sözleşme konusu ürünün temel nitelikleri, satış fiyatı ve ödeme şekli ile teslimata ilişkin ön bilgileri okuyup bilgi sahibi olduğunu, elektronik ortamda satış için gerekli teyidi verdiğini kabul, beyan ve taahhüt eder.</p>
-                <p>4.2 Sözleşme konusu ürün, yasal 30 günlük süreyi aşmamak koşulu ile internet sitesinde yer alan teslimat koşulları çerçevesinde kargo veya kurye aracılığı ile ALICI'nın belirttiği adrese teslim edilecektir.</p>
-                <p>4.3 SATICI, sözleşme konusu ürünün sağlam, eksiksiz, siparişte belirtilen niteliklere uygun ve varsa garanti belgeleri, kullanım kılavuzları ile teslim edilmesinden sorumludur.</p>
-                <p>4.4 Sözleşme konusu ürünün teslimatı için sözleşmenin düzenlenmesi ve ödemenin yapılmış olması gereklidir. Ödeme yapılmadan ürün teslimatı yapılmaz.</p>
-                <p>4.5 Ürünün tesliminden sonra ALICI'ya ait kredi kartının ALICI'nın kusurundan kaynaklanmayan bir şekilde yetkisiz kişilerce haksız veya hukuka aykırı olarak kullanılması nedeni ile ilgili banka veya finans kuruluşun ürün bedelini SATICI'ya ödememesi halinde, ALICI'nın kendisine teslim edilmiş olması kaydıyla ürünün SATICI'ya gönderilmesi zorunludur.</p>
-                
-                <h4 className="font-bold mt-6">5. CAYMA HAKKI</h4>
-                <p>5.1 ALICI, hiçbir hukuki ve cezai sorumluluk üstlenmeksizin ve hiçbir gerekçe göstermeksizin, mal satışına ilişkin işlemlerde teslimat tarihinden itibaren 14 (on dört) gün içerisinde malı reddederek sözleşmeden cayma hakkını kullanabilir.</p>
-                <p>5.2 Gıda ürünleri ve son kullanma tarihi olan ürünler, açıldığında iadesi sağlık koşulları açısından mümkün olmayan ürünler cayma hakkı kapsamı dışındadır. Bu nedenle süt ürünleri ve peynir ürünleri kısa ömürlü gıda ürünleri kapsamına girdiği için cayma hakkı kapsamı dışındadır.</p>
-
-                <h4 className="font-bold mt-6">6. UYUŞMAZLIK ÇÖZÜMÜ</h4>
-                <p>İşbu sözleşme ile ilgili çıkacak ihtilaflarda; her yıl Ticaret Bakanlığı tarafından ilan edilen değere kadar Tüketici Hakem Heyetleri, üzerinde ise tüketicinin veya satıcının yerleşim yerindeki Tüketici Mahkemeleri yetkilidir.</p>
-                
-                <p className="mt-6">SATICI: Kaşarcım</p>
-                <p>ALICI: Sipariş veren kişi</p>
-                <p>Tarih: {new Date().toLocaleDateString('tr-TR')}</p>
-        </div>
-            </div>
-            
-            <div className="p-4 bg-gray-50 border-t border-gray-200 sticky bottom-0">
-          <button 
-                onClick={handleConfirm}
-                className="w-full px-4 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium"
-              >
-                Okudum, Onayladım
-          </button>
-            </div>
-        </div>
-      </div>
-    </div>
-  );
-  };
-  
-  // Aydınlatma formu modal
-  const InfoFormModal = () => {
-    // Modal açıldığında scroll engelleme
-    useEffect(() => {
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = '';
-      };
-    }, []);
-    
-    // Modal kapatma ve checkbox işaretleme işlevi
-    const handleConfirm = () => {
-      setAgreeInfoForm(true);
-      setShowInfoForm(false);
-    };
-    
-    return (
-      <div className="fixed inset-0 z-50 overflow-hidden">
-        <div className="flex items-center justify-center min-h-screen text-center">
-          {/* Arka plan overlay */}
-          <div className="fixed inset-0 transition-opacity" onClick={() => setShowInfoForm(false)}>
-            <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-          </div>
-
-          {/* Modal içeriği - mobilde tam ekran */}
-          <div 
-            className="fixed inset-0 bg-white w-full h-full sm:static sm:inline-block sm:align-middle sm:bg-white sm:rounded-lg sm:text-left sm:shadow-xl sm:transform sm:transition-all sm:h-auto sm:max-h-[90vh] sm:max-w-3xl sm:rounded-lg sm:relative z-50"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="px-4 py-6 bg-orange-500 sticky top-0 z-10 sm:rounded-t-lg">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-medium text-white">Genel Bilgilendirme Sözleşmesi</h2>
-          <button 
-            onClick={() => setShowInfoForm(false)}
-                  className="text-white hover:text-gray-200 focus:outline-none"
-          >
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-          </button>
-        </div>
-            </div>
-
-            <div className="p-6 overflow-y-auto custom-scrollbar" style={{ maxHeight: 'calc(100vh - 80px)' }}>
-              <div className="prose max-w-none">
-                <h3 className="text-xl font-bold mb-4">GENEL BİLGİLENDİRME SÖZLEŞMESİ</h3>
-                
-                <p>Değerli müşterilerimiz,</p>
-                
-                <p>Kasarcım olarak sizlere sunduğumuz hizmetler ve ürünler hakkında aşağıdaki bilgileri paylaşmak isteriz:</p>
-                
-                <h4 className="font-bold mt-6">1. ÜRÜNLER HAKKINDA</h4>
-                <p>Sitemizde satışa sunulan tüm peynir ürünlerimiz, özenle seçilmiş üreticilerden temin edilmektedir. Ürünlerimiz doğal koşullarda üretilmekte ve en iyi şekilde korunarak sizlere ulaştırılmaktadır.</p>
-          
-                <h4 className="font-bold mt-6">2. TESLİMAT KOŞULLARI</h4>
-                <p>Siparişleriniz, ödeme onayından sonra 1-3 iş günü içerisinde kargoya verilmektedir. Kargo firmasına teslim edildikten sonra genellikle 1-2 iş günü içerisinde adresinize ulaştırılmaktadır. Soğuk zincir gerektiren ürünlerimiz, özel soğutucu kutular içerisinde gönderilmektedir.</p>
-          
-                <h4 className="font-bold mt-6">3. İADE KOŞULLARI</h4>
-                <p>Gıda ürünleri ve son kullanma tarihi olan ürünler, sağlık ve hijyen koşulları nedeniyle iade kapsamı dışındadır. Ancak ürünlerin size ulaştığında herhangi bir hasar görmüş olması durumunda, durumu 24 saat içerisinde bildirmeniz halinde gerekli işlemler başlatılacaktır.</p>
-          
-                <h4 className="font-bold mt-6">4. MÜŞTERİ BİLGİLERİ</h4>
-                <p>Sipariş sürecinde paylaştığınız kişisel bilgileriniz, siparişinizin tamamlanması, teslimatın gerçekleştirilmesi ve gerektiğinde sizinle iletişim kurulabilmesi amacıyla kullanılmaktadır. Bu bilgiler, yasal zorunluluklar dışında üçüncü kişilerle paylaşılmamaktadır.</p>
-          
-                <h4 className="font-bold mt-6">5. İLETİŞİM</h4>
-                <p>Herhangi bir sorunuz veya sorununuz olduğunda, info@kasarcim.com e-posta adresi veya sitemizde belirtilen telefon numarası üzerinden bizimle iletişime geçebilirsiniz. Müşteri hizmetleri ekibimiz, sorularınızı yanıtlamaktan memnuniyet duyacaktır.</p>
-                
-                <p className="mt-6">Bu bilgilendirme metni, Kasarcım web sitesi ve uygulaması üzerinden yapacağınız alışverişlerde sizlere rehberlik etmek amacıyla hazırlanmıştır. Sitemizden alışveriş yaparak, bu bilgileri okuduğunuzu ve kabul ettiğinizi beyan etmiş olursunuz.</p>
-                
-                <p className="mt-4">Kasarcım ailesine katıldığınız için teşekkür ederiz.</p>
-        </div>
-            </div>
-            
-            <div className="p-4 bg-gray-50 border-t border-gray-200 sticky bottom-0">
-          <button 
-                onClick={handleConfirm}
-                className="w-full px-4 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium"
-              >
-                Okudum, Onayladım
-          </button>
-            </div>
-        </div>
-        </div>
-      </div>
-    );
-  };
-  
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <h1 className="text-2xl font-semibold text-gray-800 mb-8">Ödeme</h1>
-      
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Sol Kolon - Sipariş Bilgileri */}
-        <div className="lg:w-2/3 space-y-6">
-          <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
-            
-            {/* Kullanıcı Giriş Durumu */}
-            {!user && (
-              <div className="bg-orange-50 p-4 rounded-lg border border-orange-100 mb-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <FaInfoCircle className="text-orange-500" />
-                  <span className="font-medium text-orange-700">Misafir olarak devam ediyorsunuz</span>
-                </div>
-                <p className="text-sm text-orange-600 mb-3">
-                  Zaten bir hesabınız var mı? <Link href="/login" className="text-orange-700 font-medium underline">Giriş yapın</Link> veya aşağıdaki bilgileri doldurarak misafir olarak devam edin.
-                </p>
-              </div>
-            )}
-            
-            {/* Adres Seçimi (Kullanıcı giriş yapmışsa) */}
+    <div id="Checkout" className="min-h-screen bg-white">
+      {/* Mobile Header - Before Summary */}
+      <div className="lg:hidden px-4 py-4 border-b border-gray-200">
+        <div className="flex items-center justify-between">
+          <CustomLink href="/" className="inline-block">
+            <Image
+              src="/images/kasarcim-logo.svg"
+              alt="Kars'tan Töresel"
+              width={120}
+              height={40}
+              className="object-contain"
+            />
+          </CustomLink>
+
+          <div className="text-sm text-gray-600">
             {user ? (
-              <div id="address-section" className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
-                <h2 className="text-lg font-medium mb-4 flex items-center">
-                  <FaTruck className="mr-2 text-orange-500" /> Teslimat Adresi
-                </h2>
-                
-                {addresses.length > 0 ? (
-                  <div className="space-y-4">
-                  {addresses.map(address => (
-                    <div 
-                      key={address.id} 
-                        className={`border-2 rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-md ${selectedAddress === address.id ? 'border-orange-500 bg-orange-50' : 'border-gray-200'}`}
-                      onClick={() => setSelectedAddress(address.id)}
-                    >
-                        <input
-                          type="radio"
-                          id={`address-${address.id}`}
-                          name="address"
-                          value={address.id}
-                          checked={selectedAddress === address.id}
-                          onChange={() => setSelectedAddress(address.id)}
-                          className="hidden"
-                        />
-                        <label
-                          htmlFor={`address-${address.id}`}
-                          className="block cursor-pointer"
-                        >
-                          <div className="px-5 py-4 flex items-center justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center">
-                        <div>
-                                  <h3 className="font-medium text-lg">{address.title}</h3>
-                                  <p className="text-gray-600 text-sm mt-1">
-                                    {address.address}, {address.district}/{address.city}
-                                  </p>
-                                  <p className="text-gray-500 text-sm mt-1">
-                                    {address.phone}
-                                  </p>
-                          </div>
-                        </div>
-                            </div>
-                            <div className="flex flex-col items-end justify-between h-full">
-                              {address.is_default && (
-                                <span className="text-xs bg-orange-100 text-orange-600 py-1 px-2 rounded mb-2">Varsayılan</span>
-                              )}
-                              <div className={`h-6 w-6 border-2 rounded-full ${selectedAddress === address.id ? 'border-orange-500 bg-orange-500' : 'border-gray-300'}`}>
-                        {selectedAddress === address.id && (
-                                  <div className="h-full w-full flex items-center justify-center">
-                                    <FaCheck className="text-white text-xs" />
-                          </div>
-                        )}
-                      </div>
-                            </div>
-                          </div>
-                        </label>
-                    </div>
-                  ))}
-                  
-                    <Link href="/adreslerim?returnUrl=/odeme" className="block w-full p-3 border border-dashed border-orange-300 rounded-lg text-center text-orange-500 hover:bg-orange-50 transition duration-200">
-                      <div className="flex items-center justify-center">
-                        <FaPlus className="mr-2" /> Yeni Adres Ekle
-                      </div>
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="text-center py-6">
-                    <p className="text-gray-500 mb-4">Henüz kayıtlı adresiniz bulunmuyor.</p>
-                    <Link 
-                      href="/adreslerim?returnUrl=/odeme" 
-                      className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg transition"
-                    >
-                      Adres Ekle
-                    </Link>
-                </div>
-              )}
-            </div>
+              <span className="text-black font-medium">
+                Hoş geldiniz, {user.firstName || user.email}
+              </span>
             ) : (
-              // Misafir kullanıcı için adres bilgisi özeti (drawer form yerine)
-              <div id="address-section" className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
-                <h2 className="text-lg font-medium mb-4 flex items-center">
-                  <FaTruck className="mr-2 text-orange-500" /> Teslimat Bilgileri
-                </h2>
-                
-                {guestInfo.fullName && guestInfo.address ? (
-                  <div className="border rounded-lg p-4 relative">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="font-medium">{guestInfo.fullName}</div>
-                        <div className="text-sm text-gray-600 mt-1">
-                          {guestInfo.address}, {guestInfo.district}/{guestInfo.city}
+              <CustomLink
+                href="/login"
+                className="text-black font-medium hover:underline"
+              >
+                Giriş Yap
+              </CustomLink>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Summary Header */}
+      <div className="lg:hidden">
+        <div
+          className="bg-gray-50 px-4 py-3 border-b border-gray-200 cursor-pointer"
+          onClick={() => setIsOrderSummaryOpen(!isOrderSummaryOpen)}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-gray-700 font-medium">Özet</span>
+            <div className="flex items-center">
+              <span className="text-lg font-bold mr-2">
+                ₺{" "}
+                {(
+                  parseFloat(discountedTotal || cartTotal || 0) +
+                  ((discountedTotal || cartTotal || 0) >= 1500 ? 0 : 100)
+                ).toFixed(2)}{" "}
+                ({cartItems.length} ürün)
+              </span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+                className={`transform transition-transform ${
+                  isOrderSummaryOpen ? "rotate-180" : ""
+                }`}
+              >
+                <path fill="none" d="M0 0h24v24H0z"></path>
+                <path
+                  fill="currentColor"
+                  d="M12 13.172l4.95-4.95 1.414 1.414L12 16 5.636 9.636 7.05 8.222z"
+                ></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {/* Enhanced Mobile Summary */}
+        {isOrderSummaryOpen && (
+          <div className="bg-white border-b border-gray-200">
+            <div className="px-4 py-4">
+              {/* Product List */}
+              <div className="space-y-4 mb-6">
+                {cartItems.map((item) => {
+                  // İndirim kontrolü ve fiyat hesaplamaları
+                  const hasDiscount =
+                    item.active_discount !== null &&
+                    item.active_discount !== undefined;
+                  const originalPrice = parseFloat(item.price) || 0;
+                  const currentPrice =
+                    item.currentPrice !== undefined
+                      ? parseFloat(item.currentPrice)
+                      : parseFloat(item.price) || 0;
+                  const discountAmount = hasDiscount
+                    ? originalPrice - currentPrice
+                    : 0;
+                  const discountPercentage =
+                    hasDiscount && item.active_discount?.discount_percentage
+                      ? item.active_discount.discount_percentage
+                      : hasDiscount
+                      ? Math.round(
+                          ((originalPrice - currentPrice) / originalPrice) * 100
+                        )
+                      : 0;
+
+                  return (
+                    <div key={item.id} className="flex items-start gap-3">
+                      <div className="relative flex-shrink-0">
+                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100">
+                          <Image
+                            src={item.img_url || "/images/placeholder.png"}
+                            alt={item.name}
+                            width={48}
+                            height={48}
+                            className="object-cover w-full h-full"
+                          />
                         </div>
-                        <div className="text-sm text-gray-500 mt-1">
-                          {guestInfo.phone}
-                        </div>
-                        <div className="text-sm text-gray-500 mt-1">
-                          {guestInfo.email}
+                        <div className="absolute -top-2 -right-2 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs">
+                            {item.quantity}
+                          </span>
                         </div>
                       </div>
-                      <button 
-                        type="button"
-                        onClick={() => setAddressDrawerOpen(true)}
-                        className="text-orange-500 hover:text-orange-600 text-sm font-medium"
-                      >
-                        Düzenle
-                      </button>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-medium text-gray-800 leading-tight mb-1">
+                          {item.name}
+                        </h4>
+                        <div className="text-right">
+                          <div className="font-medium text-gray-800">
+                            ₺ {(currentPrice * item.quantity).toFixed(2)}
+                          </div>
+                          {hasDiscount && (
+                            <div className="text-xs text-gray-500 line-through">
+                              ₺{(originalPrice * item.quantity).toFixed(2)}
+                            </div>
+                          )}
+                          {hasDiscount && (
+                            <div className="text-xs text-red-600 font-medium">
+                              %{discountPercentage} indirim
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <hr className="border-gray-200 mb-4" />
+
+              {/* Subtotal */}
+              <div className="space-y-3 mb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-600 text-sm">Ara Toplam</span>
+                    <div
+                      className="w-4 h-4 bg-gray-300 rounded-full flex items-center justify-center cursor-help"
+                      title="Ara toplam, tüm geçerli indirimlerden önce siparişinizin toplam fiyatını yansıtır."
+                    >
+                      <span className="text-gray-600 text-xs">?</span>
                     </div>
                   </div>
-                ) : (
-                  <div className="text-center py-6">
-                    <p className="text-gray-600 mb-4">Henüz teslimat adresi girmediniz.</p>
+                  <span className="font-medium text-gray-800 text-sm">
+                    ₺ {parseFloat(cartTotal || 0).toFixed(2)}
+                  </span>
+                </div>
+
+                {discount > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 text-sm">
+                      İndirim ({couponCode})
+                    </span>
+                    <span className="font-medium text-green-500 text-sm">
+                      -₺ {parseFloat(discount).toFixed(2)}
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600 text-sm">
+                    Teslimat / Kargo
+                  </span>
+                  {(discountedTotal || cartTotal || 0) >= 1500 ? (
+                    <span className="text-green-600 text-sm font-medium">
+                      Ücretsiz
+                    </span>
+                  ) : (
+                    <span className="text-gray-600 text-sm">₺ 100,00</span>
+                  )}
+                </div>
+              </div>
+
+              <hr className="border-gray-200 mb-4" />
+
+              {/* Discount Code */}
+              <div className="mb-4 ">
+                {couponCode ? (
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 flex justify-between items-center">
+                    <div>
+                      <span className="text-orange-700 font-medium flex items-center text-sm">
+                        🏷️ {couponCode}
+                      </span>
+                      <p className="text-xs text-orange-600 mt-1">
+                        -
+                        {new Intl.NumberFormat("tr-TR", {
+                          style: "currency",
+                          currency: "TRY",
+                        }).format(discount)}{" "}
+                        indirim uygulandı
+                      </p>
+                    </div>
                     <button
-                      type="button"
-                      onClick={() => setAddressDrawerOpen(true)}
-                      className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg transition"
+                      onClick={removeCoupon}
+                      className="text-orange-700 hover:text-orange-900 text-sm"
                     >
-                      Adres Bilgilerini Gir
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={discountCodeInput}
+                      onChange={(e) => setDiscountCodeInput(e.target.value)}
+                      placeholder="İndirim kodu ekle"
+                      className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    />
+                    <button
+                      onClick={handleApplyDiscount}
+                      disabled={couponLoading || !discountCodeInput.trim()}
+                      className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {couponLoading ? "Uygula..." : "Uygula"}
                     </button>
                   </div>
                 )}
               </div>
-            )}
-            
-            {/* Ödeme Yöntemi */}
-            <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
-              <h2 className="text-lg font-medium mb-4 flex items-center">
-                <FaCreditCard className="mr-2 text-orange-500" /> Ödeme Yöntemi
-              </h2>
-              
-              <div className="grid grid-cols-1 gap-4">
-                <div 
-                  className={`border-2 ${paymentMethod === 'bank_transfer' ? 'border-orange-500 bg-orange-50' : 'border-gray-200'} rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-md`}
-                  onClick={() => setPaymentMethod('bank_transfer')}
-                >
-                  <input 
-                    type="radio" 
-                    id="bank-transfer" 
-                    name="payment-method" 
-                    value="bank_transfer"
-                    checked={paymentMethod === 'bank_transfer'} 
-                    onChange={() => setPaymentMethod('bank_transfer')}
-                    className="hidden" 
-                  />
-                  <label htmlFor="bank-transfer" className="block cursor-pointer">
-                    <div className="px-5 py-4 flex items-center justify-between">
-                      <div className="flex items-center">
-                        <div className="rounded-full bg-orange-100 p-3 mr-4">
-                          <FaMoneyBillAlt className="text-orange-500 text-2xl" />
-                    </div>
-                        <div>
-                          <h3 className="font-medium text-lg">Havale / EFT</h3>
-                          <p className="text-gray-600 text-sm">
-                            Siparişinizi banka havalesi ya da EFT ile ödeyebilirsiniz
-                          </p>
-                  </div>
-                      </div>
-                      <div className={`h-6 w-6 border-2 rounded-full ${paymentMethod === 'bank_transfer' ? 'border-orange-500 bg-orange-500' : 'border-gray-300'}`}>
-                        {paymentMethod === 'bank_transfer' && (
-                          <div className="h-full w-full flex items-center justify-center">
-                            <FaCheck className="text-white text-xs" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </label>
+
+              <hr className="border-gray-200 mb-4" />
+
+              {/* Total */}
+              <div className="mb-4">
+                <div className="flex items-center justify-between text-lg font-bold">
+                  <span className="text-gray-800">Toplam</span>
+                  <span className="text-gray-800">
+                    ₺{" "}
+                    {(
+                      parseFloat(discountedTotal || cartTotal || 0) +
+                      ((discountedTotal || cartTotal || 0) >= 1500 ? 0 : 100)
+                    ).toFixed(2)}
+                  </span>
                 </div>
-                
-                <div 
-                  className={`border-2 border-gray-200 rounded-xl overflow-hidden opacity-60 bg-gray-50`}
-                >
-                  <input 
-                    type="radio" 
-                    id="credit-card" 
-                    name="payment-method" 
-                    value="credit_card"
-                    checked={paymentMethod === 'credit_card'} 
-                    onChange={() => {}} 
-                    className="hidden" 
-                    disabled
-                  />
-                  <label htmlFor="credit-card" className="block">
-                    <div className="px-5 py-4 flex items-center justify-between">
-                      <div className="flex items-center">
-                        <div className="rounded-full bg-gray-200 p-3 mr-4">
-                          <FaRegCreditCard className="text-gray-500 text-2xl" />
-                    </div>
-                        <div>
-                          <h3 className="font-medium text-lg">Kredi Kartı<span className="ml-2 text-sm text-gray-500">(Çok yakında)</span></h3>
-                          <p className="text-gray-500 text-sm">
-                            Güvenli ödeme altyapımız ile bütün kartlar desteklenir
-                          </p>
-                      </div>
-                  </div>
-                      <div className="h-6 w-6 border-2 rounded-full border-gray-300">
-                      </div>
-                    </div>
-                  </label>
+                <div className="text-right text-xs text-gray-500 mt-1">
+                  Vergi ₺{" "}
+                  {(
+                    (parseFloat(discountedTotal || cartTotal || 0) +
+                      ((discountedTotal || cartTotal || 0) >= 1500 ? 0 : 100)) *
+                    0.01
+                  ).toFixed(2)}
                 </div>
-                
-                <div 
-                  className={`border-2 ${paymentMethod === 'cash_on_delivery' ? 'border-orange-500 bg-orange-50' : 'border-gray-200'} rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-md`}
-                  onClick={() => setPaymentMethod('cash_on_delivery')}
-                >
-                  <input 
-                    type="radio" 
-                    id="cash-delivery" 
-                    name="payment-method" 
-                    value="cash_on_delivery"
-                    checked={paymentMethod === 'cash_on_delivery'} 
-                    onChange={() => setPaymentMethod('cash_on_delivery')}
-                    className="hidden" 
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Main Content */}
+      <div className="flex flex-col lg:flex-row min-h-[calc(100vh-80px)]">
+        {/* Left Side - Form */}
+        <div className="w-full lg:w-3/5 bg-white">
+          <div className="h-full overflow-y-auto px-2 py-2 lg:px-4 lg:py-2">
+            <div className="max-w-2xl mx-auto space-y-8">
+              {/* Header - Desktop Only */}
+              <div className="hidden lg:flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 lg:mt-6 space-y-4 sm:space-y-0">
+                <CustomLink href="/" className="inline-block">
+                  <Image
+                    src="/images/kasarcim-logo.svg"
+                    alt="Kars'tan Töresel"
+                    width={120}
+                    height={40}
+                    className="object-contain"
                   />
-                  <label htmlFor="cash-delivery" className="block cursor-pointer">
-                    <div className="px-5 py-4 flex items-center justify-between">
-                      <div className="flex items-center">
-                        <div className="rounded-full bg-orange-100 p-3 mr-4">
-                          <FaMoneyBillAlt className="text-orange-500 text-2xl" />
-                    </div>
-                        <div>
-                          <h3 className="font-medium text-lg">Kapıda Ödeme <span className="text-sm text-orange-600 font-normal">(+50 TL)</span></h3>
-                          <p className="text-gray-600 text-sm">
-                            Teslimat anında nakit veya kart ile ödeme
-                          </p>
-                  </div>
+                </CustomLink>
+
+                <div className="text-sm text-gray-600">
+                  {user ? (
+                    <span className="text-black  font-bold">
+                      Hoş geldiniz, {user.firstName || user.email}
+                    </span>
+                  ) : (
+                    <CustomLink
+                      href="/login"
+                      className="text-black font-medium hover:underline"
+                    >
+                      Giriş Yap
+                    </CustomLink>
+                  )}
+                </div>
+              </div>
+
+              {/* Discount Code - Only show during address step */}
+              {currentStep === 1 && (
+                <div className="hidden lg:block">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                    İndirim Kodu
+                  </h3>
+                  {couponCode ? (
+                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 flex justify-between items-center">
+                      <div>
+                        <span className="text-orange-700 font-medium flex items-center">
+                          🏷️ {couponCode}
+                        </span>
+                        <p className="text-sm text-orange-600 mt-1">
+                          -
+                          {new Intl.NumberFormat("tr-TR", {
+                            style: "currency",
+                            currency: "TRY",
+                          }).format(discount)}{" "}
+                          indirim uygulandı
+                        </p>
                       </div>
-                      <div className={`h-6 w-6 border-2 rounded-full ${paymentMethod === 'cash_on_delivery' ? 'border-orange-500 bg-orange-500' : 'border-gray-300'}`}>
-                  {paymentMethod === 'cash_on_delivery' && (
-                          <div className="h-full w-full flex items-center justify-center">
-                            <FaCheck className="text-white text-xs" />
+                      <button
+                        onClick={removeCoupon}
+                        className="text-orange-700 hover:text-orange-900"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-3">
+                      <input
+                        type="text"
+                        value={discountCodeInput}
+                        onChange={(e) => setDiscountCodeInput(e.target.value)}
+                        placeholder="İndirim kodu ekle"
+                        className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      />
+                      <button
+                        onClick={handleApplyDiscount}
+                        disabled={couponLoading || !discountCodeInput.trim()}
+                        className="px-6 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        style={{ width: "33%" }}
+                      >
+                        {couponLoading ? "Uygula..." : "Uygula"}
+                      </button>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Step 1 - Address */}
+              {currentStep === 1 && (
+                <div>
+                  <div className="flex items-center mb-6">
+                    <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold mr-3">
+                      1
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      Adres
+                    </h3>
+                  </div>
+
+                  {user && addresses.length > 0 ? (
+                    <div className="space-y-4">
+                      {addresses.map((address) => (
+                        <div
+                          key={address.id}
+                          className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                            selectedAddress === address.id
+                              ? "border-orange-500 bg-orange-50"
+                              : "border-gray-200"
+                          }`}
+                          onClick={() => {
+                            setSelectedAddress(address.id);
+                            setIsEditingAddress(false);
+                          }}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <h3 className="font-medium text-lg">
+                                {address.title}
+                              </h3>
+                              <p className="text-gray-600 text-sm mt-1">
+                                {`${address.first_name || ""} ${
+                                  address.last_name || ""
+                                }`.trim()}
+                              </p>
+                              <p className="text-gray-600 text-sm mt-1">
+                                {address.address}, {address.district}/
+                                {address.city}
+                              </p>
+                              <p className="text-gray-500 text-sm mt-1">
+                                {address.phone_number}
+                              </p>
+                            </div>
+                            <div className="flex flex-col items-end">
+                              {address.is_default && (
+                                <span className="text-xs bg-orange-100 text-orange-600 py-1 px-2 rounded mb-2">
+                                  Varsayılan
+                                </span>
+                              )}
+                              <div
+                                className={`h-5 w-5 border-2 rounded-full ${
+                                  selectedAddress === address.id
+                                    ? "border-orange-500 bg-orange-500"
+                                    : "border-gray-300"
+                                }`}
+                              >
+                                {selectedAddress === address.id && (
+                                  <div className="h-full w-full flex items-center justify-center">
+                                    <FaCheck className="text-white text-xs" />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      <CustomLink
+                        href="/adreslerim?returnUrl=/odeme"
+                        className="block w-full p-3 border border-dashed border-orange-300 rounded-lg text-center text-orange-500 hover:bg-orange-50 transition duration-200"
+                      >
+                        <div className="flex items-center justify-center">
+                          <FaPlus className="mr-2" /> Yeni Adres Ekle
+                        </div>
+                      </CustomLink>
+                    </div>
+                  ) : user && addresses.length === 0 ? (
+                    <div className="text-center py-6">
+                      <p className="text-gray-500 mb-4">
+                        Henüz kayıtlı adresiniz bulunmuyor.
+                      </p>
+                      <CustomLink
+                        href="/adreslerim?returnUrl=/odeme"
+                        className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg transition"
+                      >
+                        Adres Ekle
+                      </CustomLink>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      {/* Contact Info */}
+                      <div>
+                        <div className="space-y-4">
+                          <div className="relative">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              E-Posta <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="email"
+                              value={guestInfo.email}
+                              onChange={handleGuestInfoChange}
+                              name="email"
+                              autoComplete="email"
+                              className={getFieldClasses("email")}
+                              ref={emailRef}
+                            />
+                            {errors.email && (
+                              <p className="mt-1 text-sm text-red-600">
+                                {errors.email}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Delivery Address */}
+                      <div>
+                        <div className="space-y-4">
+                          {/* Name */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Ad Soyad <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              name="fullName"
+                              value={guestInfo.fullName}
+                              onChange={handleGuestInfoChange}
+                              autoComplete="given-name"
+                              className={getFieldClasses("fullName")}
+                              ref={fullNameRef}
+                            />
+                            {errors.fullName && (
+                              <p className="mt-1 text-sm text-red-600">
+                                {errors.fullName}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Address */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Adres <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            name="address"
+                            value={guestInfo.address}
+                            onChange={handleGuestInfoChange}
+                            autoComplete="address-line1"
+                            className={getFieldClasses("address")}
+                            ref={addressRef}
+                          />
+                          {errors.address && (
+                            <p className="mt-1 text-sm text-red-600">
+                              {errors.address}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* City District */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              İl <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              name="city"
+                              value={guestInfo.city}
+                              onChange={handleGuestInfoChange}
+                              className={getFieldClasses("city")}
+                              ref={cityRef}
+                            />
+                            {errors.city && (
+                              <p className="mt-1 text-sm text-red-600">
+                                {errors.city}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              İlçe <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              name="district"
+                              value={guestInfo.district}
+                              onChange={handleGuestInfoChange}
+                              className={getFieldClasses("district")}
+                              ref={districtRef}
+                            />
+                            {errors.district && (
+                              <p className="mt-1 text-sm text-red-600">
+                                {errors.district}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Postal Code */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Posta Kodu (İsteğe bağlı)
+                          </label>
+                          <input
+                            type="text"
+                            name="postalCode"
+                            value={guestInfo.postalCode}
+                            onChange={handleGuestInfoChange}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          />
+                        </div>
+
+                        {/* Phone */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Telefon <span className="text-red-500">*</span>
+                          </label>
+                          <div className="flex">
+                            <div
+                              className={`flex items-center px-3 py-3 border border-r-0 bg-gray-50 rounded-l-lg ${
+                                errors.phone
+                                  ? "border-red-500"
+                                  : "border-gray-300"
+                              }`}
+                            >
+                              <img
+                                className="w-4 h-3 mr-2"
+                                alt="TR"
+                                src="https://cdn.myikas.com/sf/assets/flags/3x2/TR.svg"
+                              />
+                              <div className="w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-gray-600"></div>
+                            </div>
+                            <input
+                              type="tel"
+                              name="phone"
+                              value={guestInfo.phone}
+                              onChange={handleGuestInfoChange}
+                              autoComplete="tel"
+                              className={getFieldClasses("phone")}
+                              ref={phoneRef}
+                            />
+                          </div>
+                          {errors.phone && (
+                            <p className="mt-1 text-sm text-red-600">
+                              {errors.phone}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Corporate Invoice */}
+                        <div className="mt-3">
+                          <label className="flex items-center gap-3 cursor-pointer">
+                            <div className="relative">
+                              <input
+                                type="checkbox"
+                                checked={corporateInvoice}
+                                onChange={(e) =>
+                                  setCorporateInvoice(e.target.checked)
+                                }
+                                className="sr-only"
+                              />
+                              <div
+                                className={`w-4 h-4 border-2 rounded ${
+                                  corporateInvoice
+                                    ? "bg-orange-500 border-orange-500"
+                                    : "border-gray-300"
+                                }`}
+                              >
+                                {corporateInvoice && (
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="10.3"
+                                    height="8"
+                                    viewBox="8.9 0.3 10.3 8"
+                                    className="text-white"
+                                  >
+                                    <path
+                                      fill="currentColor"
+                                      d="M12.6 8.1l-3.7-3.8 1-1.1 2.7 2.7 5.5-5.4 1 1z"
+                                    ></path>
+                                  </svg>
+                                )}
+                              </div>
+                            </div>
+                            <span className="text-sm text-gray-700">
+                              Kurumsal fatura
+                            </span>
+                          </label>
+                        </div>
                       </div>
                     </div>
-                  </label>
+                  )}
+
+                  {/* Billing Address Checkbox */}
+                  <div className="mt-6">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <div className="relative">
+                        <input
+                          type="checkbox"
+                          checked={billingAddressSame}
+                          onChange={(e) =>
+                            setBillingAddressSame(e.target.checked)
+                          }
+                          className="sr-only"
+                        />
+                        <div
+                          className={`w-4 h-4 border-2 rounded ${
+                            billingAddressSame
+                              ? "bg-orange-500 border-orange-500"
+                              : "border-gray-300"
+                          }`}
+                        >
+                          {billingAddressSame && (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="10.3"
+                              height="8"
+                              viewBox="8.9 0.3 10.3 8"
+                              className="text-white"
+                            >
+                              <path
+                                fill="currentColor"
+                                d="M12.6 8.1l-3.7-3.8 1-1.1 2.7 2.7 5.5-5.4 1 1z"
+                              ></path>
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                      <span className="text-sm text-gray-700">
+                        Fatura adresim teslimat adresimle aynı
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Continue Button */}
+                  <button
+                    onClick={handleNextStep}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 px-6 rounded-lg font-medium text-lg transition-colors mt-8"
+                  >
+                    Ödeme ile Devam Et
+                  </button>
                 </div>
-              </div>
+              )}
+
+              {/* Step 3 - Payment */}
+              {currentStep === 3 && (
+                <div>
+                  {/* Progress Bar - Vertical Steps */}
+                  <div className="space-y-6">
+                    {/* Step 1 - Address */}
+                    <div className="border-b border-gray-200 pb-4">
+                      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
+                        <div className="flex flex-col lg:flex-row lg:items-start">
+                          <div className="flex items-start mb-3 lg:mb-0">
+                            <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold mr-3">
+                              ✓
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-800">
+                              Adres
+                            </h3>
+                          </div>
+                          <div className="lg:ml-6 ml-11 text-sm text-gray-600 space-y-1">
+                            <div>{guestInfo.email}</div>
+                            <div>{guestInfo.fullName}</div>
+                            <div>+90{guestInfo.phone}</div>
+                            <div>
+                              {guestInfo.address}, {guestInfo.district},{" "}
+                              {guestInfo.city}, Türkiye
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setIsEditingAddress(true);
+                            setCurrentStep(1);
+                          }}
+                          className="text-orange-500 font-medium hover:underline mt-3 lg:mt-0 ml-11 lg:ml-0"
+                        >
+                          {user && addresses.length > 0
+                            ? "Adres Değiştir"
+                            : "Düzenle"}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Step 2 - Cargo */}
+                    <div className="border-b border-gray-200 pb-4">
+                      <div className="flex flex-col lg:flex-row lg:items-start">
+                        <div className="flex items-start mb-3 lg:mb-0">
+                          <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold mr-3">
+                            ✓
+                          </div>
+                          <h3 className="text-lg font-semibold text-gray-800">
+                            Kargo
+                          </h3>
+                        </div>
+                        <div className="lg:ml-6 ml-11 text-sm text-gray-600">
+                          {(discountedTotal || cartTotal || 0) >= 1500 ? (
+                            <>
+                              Ücretsiz Kargo /{" "}
+                              <span className="text-green-600 font-medium">
+                                Ücretsiz
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              Standart Kargo /{" "}
+                              <span className="text-orange-600 font-medium">
+                                ₺100,00
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Step 3 - Payment */}
+                    <div>
+                      <div className="flex items-center mb-6">
+                        <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold mr-3">
+                          3
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-800">
+                          Ödeme
+                        </h3>
+                      </div>
+
+                      <div className="lg:ml-11 ml-2">
+                        {/* Payment Method Selection */}
+                        <div className="space-y-4 mb-6">
+                          {/* Credit Card - Re-enabled */}
+                          <div
+                            className={`border-2 rounded-lg p-4 transition-all duration-200 ${
+                              paymentMethod === "credit_card"
+                                ? "border-orange-500 bg-orange-50"
+                                : "border-gray-200"
+                            } opacity-50 cursor-not-allowed`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                             
+                            }}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <FaCreditCard className="text-gray-400 mr-3 text-xl" />
+                                <div>
+                                  <span className="font-medium text-gray-500">
+                                    Kredi Kartı
+                                  </span>
+                                  <span className="ml-2 text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">
+                                    Çok Yakında
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-gray-400 font-bold text-sm">
+                                  PAYTR
+                                </span>
+                                <div
+                                  className={`h-5 w-5 border-2 rounded-full border-gray-300 bg-gray-100`}
+                                >
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Bank Transfer */}
+                          <div
+                            className={` border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                              paymentMethod === "bank_transfer"
+                                ? "border-orange-500 bg-orange-50"
+                                : "border-gray-200"
+                            }`}
+                            onClick={() => setPaymentMethod("bank_transfer")}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <FaMoneyBillAlt className="text-orange-500 mr-3 text-xl" />
+                                <div>
+                                  <span className="font-medium text-gray-800">
+                                    Havale / EFT
+                                  </span>
+                                </div>
+                              </div>
+                              <div
+                                className={`h-5 w-5 border-2 rounded-full ${
+                                  paymentMethod === "bank_transfer"
+                                    ? "border-orange-500 bg-orange-500"
+                                    : "border-gray-300"
+                                }`}
+                              >
+                                {paymentMethod === "bank_transfer" && (
+                                  <div className="h-full w-full flex items-center justify-center">
+                                    <FaCheck className="text-white text-xs" />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* IBAN Details - Only show when selected */}
+                            {paymentMethod === "bank_transfer" && (
+                              <div className="border-t border-orange-200 pt-4 mt-4">
+                                <div className="space-y-3 text-sm">
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">
+                                      Ad Soyad:
+                                    </span>
+                                    <span className="font-medium text-gray-800">
+                                      Emrah Şander
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">
+                                      Banka:
+                                    </span>
+                                    <span className="font-medium text-gray-800">
+                                      Türkiye İş Bankası
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">IBAN:</span>
+                                    <span className="font-medium text-gray-800">
+                                      TR64 0006 4000 0011 2345 6789 01
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="mt-4 p-3 bg-white border border-orange-200 rounded-lg">
+                                  <p className="text-gray-600 text-sm">
+                                    <strong>Not:</strong> Havale açıklama
+                                    kısmına sipariş numaranızı yazınız. Sipariş
+                                    numarası ödeme onaylandıktan sonra e-posta
+                                    adresinize gönderilecektir.
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Order Notes Section */}
+                        <div className="mb-6">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Sipariş Notu (İsteğe bağlı)
+                          </label>
+                          <textarea
+                            value={orderNotes}
+                            onChange={(e) => setOrderNotes(e.target.value)}
+                            placeholder="Siparişinizle ilgili eklemek istediğiniz notlar..."
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
+                            rows="2"
+                          />
+                        </div>
+                        {/* Agreements */}
+                        <div className="mb-6">
+                          <label className="flex items-start gap-3 cursor-pointer">
+                            <div className="relative mt-1">
+                              <input type="checkbox" className="sr-only" />
+                              <div className="w-4 h-4 border-2 rounded border-orange-500 bg-orange-500">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="10.3"
+                                  height="8"
+                                  viewBox="8.9 0.3 10.3 8"
+                                  className="text-white"
+                                >
+                                  <path
+                                    fill="currentColor"
+                                    d="M12.6 8.1l-3.7-3.8 1-1.1 2.7 2.7 5.5-5.4 1 1z"
+                                  ></path>
+                                </svg>
+                              </div>
+                            </div>
+                            <span className="text-sm text-gray-700">
+                              <span className="text-orange-500 underline cursor-pointer">
+                                Gizlilik Sözleşmesini
+                              </span>{" "}
+                              ve{" "}
+                              <span className="text-orange-500 underline cursor-pointer">
+                                Satış Sözleşmesini
+                              </span>{" "}
+                              okudum, onaylıyorum.
+                            </span>
+                          </label>
+                        </div>
+
+                        {/* Complete Order Button */}
+                        <button
+                          onClick={handleFinalPayment}
+                          disabled={processing}
+                          className={`w-full py-4 px-6 rounded-lg font-medium text-lg transition-colors mb-4 ${
+                            processing
+                              ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                              : "bg-orange-500 hover:bg-orange-600 text-white"
+                          }`}
+                        >
+                          {processing ? (
+                            <div className="flex items-center justify-center">
+                              <Loader size="small" />
+                              <span className="ml-2">İşleniyor...</span>
+                            </div>
+                          ) : (
+                            "Siparişi Tamamla"
+                          )}
+                        </button>
+
+                        {/* Security Info */}
+                        <div className="flex items-center justify-center text-gray-500 text-sm">
+                          <svg
+                            className="w-4 h-4 mr-2"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 616 0z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          Ödemeler güvenli ve şifrelidir
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-            
-            {/* Sipariş Notu */}
-            <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
-              <h2 className="text-lg font-medium mb-3 flex items-center">
-                <FaFileAlt className="mr-2 text-orange-500" /> Sipariş Notu
-              </h2>
-              <textarea
-                value={orderNotes}
-                onChange={(e) => setOrderNotes(e.target.value)}
-                className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                placeholder="Siparişinizle ilgili eklemek istediğiniz notlar (opsiyonel)"
-                rows="3"
-              ></textarea>
-            </div>
-          </form>
+          </div>
         </div>
-        
-        {/* Sağ Kolon - Sipariş Özeti */}
-        <div className="lg:w-1/3">
-          <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 sticky top-24 z-10">
-            <h2 className="text-lg font-medium mb-4">Sipariş Özeti</h2>
-            
-            {/* Ürün Listesi */}
-            <div className="space-y-4 mb-6 max-h-60 overflow-y-auto custom-scrollbar pr-2">
-              {cartItems.map(item => (
-                <div key={item.id} className="flex gap-3">
-                  <div className="h-16 w-16 flex-shrink-0 rounded-md overflow-hidden">
-                    <Image 
-                      src={item.img_url || "/images/placeholder.png"} 
-                      alt={item.name}
-                      width={64}
-                      height={64}
-                      className="object-cover w-full h-full"
-                    />
+
+        {/* Right Side - Order Summary */}
+        <div className="hidden lg:block w-2/5 bg-gray-50 fixed right-0 top-0 h-full overflow-y-auto ">
+          <div className="p-4 px-16 mt-10">
+            <div className="max-w-2xl mx-auto mt-6">
+              {/* Product List */}
+              <div className="space-y-6 mb-8">
+                {cartItems.map((item) => {
+                  // İndirim kontrolü ve fiyat hesaplamaları
+                  const hasDiscount =
+                    item.active_discount !== null &&
+                    item.active_discount !== undefined;
+                  const originalPrice = parseFloat(item.price) || 0;
+                  const currentPrice =
+                    item.currentPrice !== undefined
+                      ? parseFloat(item.currentPrice)
+                      : parseFloat(item.price) || 0;
+                  const discountAmount = hasDiscount
+                    ? originalPrice - currentPrice
+                    : 0;
+                  const discountPercentage =
+                    hasDiscount && item.active_discount?.discount_percentage
+                      ? item.active_discount.discount_percentage
+                      : hasDiscount
+                      ? Math.round(
+                          ((originalPrice - currentPrice) / originalPrice) * 100
+                        )
+                      : 0;
+
+                  return (
+                    <div key={item.id} className="flex items-start gap-4">
+                      <div className="relative flex-shrink-0">
+                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
+                          <Image
+                            src={item.img_url || "/images/placeholder.png"}
+                            alt={item.name}
+                            width={64}
+                            height={64}
+                            className="object-cover w-full h-full"
+                          />
+                        </div>
+                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs font-medium">
+                            {item.quantity}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-gray-800 text-sm leading-5 mb-2">
+                          {item.name}
+                        </h4>
+                        <div className="text-right">
+                          <div className="font-medium text-gray-800">
+                            ₺ {(currentPrice * item.quantity).toFixed(2)}
+                          </div>
+                          {hasDiscount && (
+                            <div className="text-xs text-gray-500 line-through">
+                              ₺{(originalPrice * item.quantity).toFixed(2)}
+                            </div>
+                          )}
+                          {hasDiscount && (
+                            <div className="text-xs text-red-600 font-medium">
+                              %{discountPercentage} indirim
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <hr className="border-gray-200 mb-6" />
+
+              {/* Subtotal */}
+              <div className="space-y-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-600">Ara Toplam</span>
+                    <div
+                      className="w-4 h-4 bg-gray-300 rounded-full flex items-center justify-center cursor-help"
+                      title="Ara toplam, tüm geçerli indirimlerden önce siparişinizin toplam fiyatını yansıtır."
+                    >
+                      <span className="text-gray-600 text-xs">?</span>
+                    </div>
                   </div>
-                  <div className="flex-grow">
-                    <p className="font-medium text-sm">{item.name}</p>
-                    <p className="text-gray-500 text-xs">Miktar: {item.quantity}</p>
-                    <p className="font-medium text-orange-500">
-                      {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(
-                        item.currentPrice * item.quantity
-                      )}
-                    </p>
+                  <span className="font-medium text-gray-800">
+                    ₺ {parseFloat(cartTotal || 0).toFixed(2)}
+                  </span>
+                </div>
+
+                {discount > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">
+                      İndirim ({couponCode})
+                    </span>
+                    <span className="font-medium text-green-500">
+                      -₺ {parseFloat(discount).toFixed(2)}
+                    </span>
                   </div>
-                </div>
-              ))}
-            </div>
-            
-            {/* Fiyat Detayları */}
-            <div className="space-y-2 py-4 border-t border-gray-100">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Ara Toplam</span>
-                <span className="font-medium">{new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(cartTotal)}</span>
-              </div>
-              
-              {discount > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">İndirim</span>
-                  <span className="font-medium text-green-500">-{new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(discount)}</span>
-                </div>
-              )}
-              
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Kargo</span>
-                {shippingCost > 0 ? (
-                  <span className="font-medium">{new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(shippingCost)}</span>
-                ) : (
-                  <span className="font-medium text-green-500">Ücretsiz</span>
                 )}
-              </div>
-              
-              {paymentMethod === 'cash_on_delivery' && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Kapıda Ödeme Ücreti</span>
-                  <span className="font-medium">{new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(cashOnDeliveryFee)}</span>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Teslimat / Kargo</span>
+                  {(discountedTotal || cartTotal || 0) >= 1500 ? (
+                    <span className="text-green-600 text-sm font-medium">
+                      Ücretsiz
+                    </span>
+                  ) : (
+                    <span className="text-gray-600 text-sm">₺ 100,00</span>
+                  )}
                 </div>
-              )}
-            </div>
-            
-            {/* Toplam */}
-            <div className="pt-4 border-t border-gray-200">
-              <div className="flex justify-between mb-4">
-                <span className="font-semibold">Toplam</span>
-                <span className="font-bold text-lg text-orange-600">
-                  {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(finalTotal)}
-                </span>
               </div>
-              
-              <button
-                type="button"
-                id="order-submit-button"
-                ref={orderButtonRef}
-                onClick={submitOrder}
-                className={`w-full py-3 rounded-lg font-medium text-center ${
-                  processing 
-                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                    : 'bg-orange-500 hover:bg-orange-600 text-white'
-                } transition-colors`}
-                disabled={processing}
-              >
-                {processing ? (
-                  <div className="flex items-center justify-center">
-                    <Loader size="small" /> 
-                    <span className="ml-2">İşleniyor...</span>
-            </div>
-                ) : (
-                  'Siparişi Tamamla'
-                )}
-              </button>
-            
-              {/* Sözleşme onay kutuları */}
-              <div className="mt-4 space-y-3">
-              <div className="flex items-start">
-                <input
-                  type="checkbox"
-                    id="sales-contract" 
-                  checked={agreeSalesContract}
-                  onChange={(e) => setAgreeSalesContract(e.target.checked)}
-                    className="mt-1 h-4 w-4 text-orange-500 focus:ring-orange-500 border-gray-300 rounded" 
-                />
-                  <label htmlFor="sales-contract" className="ml-2 block text-sm text-gray-700">
-                  <button
-                    type="button"
-                      className="text-orange-500 hover:underline"
-                    onClick={() => setShowSalesContract(true)}
-                  >
-                      Mesafeli Satış Sözleşmesi
-                    </button>'ni okudum ve kabul ediyorum.
-                </label>
+
+              <hr className="border-gray-200 mb-6" />
+
+              {/* Total */}
+              <div className="mb-4">
+                <div className="flex items-center justify-between text-xl font-bold">
+                  <span className="text-gray-800">Toplam</span>
+                  <span className="text-gray-800">
+                    ₺{" "}
+                    {(
+                      parseFloat(discountedTotal || cartTotal || 0) +
+                      ((discountedTotal || cartTotal || 0) >= 1500 ? 0 : 100)
+                    ).toFixed(2)}
+                  </span>
+                </div>
+                <div className="text-right text-sm text-gray-500 mt-1">
+                  Vergi ₺{" "}
+                  {(
+                    (parseFloat(discountedTotal || cartTotal || 0) +
+                      ((discountedTotal || cartTotal || 0) >= 1500 ? 0 : 100)) *
+                    0.01
+                  ).toFixed(2)}
+                </div>
               </div>
-              
-              <div className="flex items-start">
-                <input
-                  type="checkbox"
-                    id="info-form" 
-                  checked={agreeInfoForm}
-                  onChange={(e) => setAgreeInfoForm(e.target.checked)}
-                    className="mt-1 h-4 w-4 text-orange-500 focus:ring-orange-500 border-gray-300 rounded" 
-                />
-                  <label htmlFor="info-form" className="ml-2 block text-sm text-gray-700">
-                  <button
-                    type="button"
-                      className="text-orange-500 hover:underline"
-                    onClick={() => setShowInfoForm(true)}
-                  >
-                      Genel Bilgilendirme Sözleşmesi
-                    </button>'ni okudum ve kabul ediyorum.
-                </label>
-              </div>
-            </div>
             </div>
           </div>
         </div>
       </div>
-      
-      {/* Adres Drawer'ı */}
-      <AddressDrawer 
-        isOpen={addressDrawerOpen} 
-        onClose={() => setAddressDrawerOpen(false)} 
-        guestInfo={guestInfo} 
-        setGuestInfo={setGuestInfo} 
-      />
-      
-      {/* Sözleşme Modalleri */}
-      {showSalesContract && <SalesContractModal />}
-      {showInfoForm && <InfoFormModal />}
+
+      {/* Footer - All screens */}
+      <div className="bg-white border-t border-gray-200 px-4 py-3 mt-8 lg:w-3/5">
+        <div className="flex items-center justify-center space-x-2 text-xs text-gray-500">
+          <span>Para İade Politikası</span>
+          <span>•</span>
+          <span>Gizlilik Politikası</span>
+          <span>•</span>
+          <span>Hizmet Şartları</span>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default PaymentPage; 
+export default PaymentPage;

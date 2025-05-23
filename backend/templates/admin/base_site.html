@@ -1,0 +1,41 @@
+{% extends "admin/base.html" %} {% block extrahead %}
+<script>
+  window.CKEDITOR_BASEPATH = "/static/ckeditor/ckeditor/";
+</script>
+{{ block.super }}
+<style>
+  /* CKEditor metinlerinin rengini düzelt */
+  .cke_editable {
+    color: #333 !important;
+    background-color: #fff !important;
+  }
+
+  /* CKEditor genişliğini artır */
+  .django-ckeditor-widget {
+    width: 100% !important;
+  }
+
+  /* CKEditor içeriği için stil */
+  .cke_contents {
+    background-color: white !important;
+  }
+
+  /* Görsel yükleme butonlarını düzelt */
+  a.cke_dialog_ui_button {
+    display: inline-block !important;
+  }
+
+  /* Admin sayfasındaki metin giriş alanları genişliğini artır */
+  .vLargeTextField,
+  .vXMLLargeTextField {
+    width: 100% !important;
+  }
+</style>
+{% endblock %} {% block title %}{{ title }} | {{ site_title|default:_('Kaşarcım
+Admin') }}{% endblock %} {% block branding %}
+<h1 id="site-name">
+  <a href="{% url 'admin:index' %}"
+    >{{ site_header|default:_('Kaşarcım Yönetim') }}</a
+  >
+</h1>
+{% endblock %} {% block nav-global %}{% endblock %}

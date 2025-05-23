@@ -17,22 +17,7 @@ export default function ProductsContent() {
           <ProductsList />
         </motion.div>
         
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-4 sm:mb-16 pt-4 sm:pt-8"
-        >
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 relative">
-            <span className="relative inline-block">
-              Ürünlerimiz
-              <span className="absolute -bottom-3 left-0 right-0 h-1.5 bg-orange-400 rounded-full"></span>
-            </span>
-          </h1>
-          <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-            Organik ve geleneksel yöntemlerle üretilen peynirlerimizin tadını çıkarın.
-          </p>
-        </motion.div>
+        
       </div>
       
       <motion.div 
