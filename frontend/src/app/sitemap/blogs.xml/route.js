@@ -1,5 +1,5 @@
 export async function GET() {
-    const res = await fetch('http://localhost:8000/api/blog/posts/');
+    const res = await fetch('https://kasarcim.com/api/blog/posts/');
     const data = await res.json();
   
     const urls = data.map(blog => `
