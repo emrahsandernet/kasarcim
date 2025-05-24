@@ -279,19 +279,14 @@ const PaymentPage = () => {
         event: "add_payment_info",
         ecommerce: {
           currency: "TRY",
-          payment_type:
-            paymentMethod === "bank_transfer"
-              ? "bank_transfer"
-              : paymentMethod === "credit_card"
-              ? "credit_card"
-              : "cash_on_delivery",
+          value: parseFloat(discountedTotal + (discountedTotal > 1500 ? 0 : 10)),
           items: cartItems.map((item) => ({
             item_id: item.id,
             item_name: item.name,
             item_brand: "Kaşarcım",
             item_category:
               item.category_name || item.category?.name || "Peynir",
-            price: item.currentPrice || item.price,
+            price: parseFloat(item.currentPrice || item.price),
             quantity: item.quantity,
           })),
         },
