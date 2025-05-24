@@ -26,17 +26,13 @@ function generateTableOfContents(sections) {
   return h2Sections;
 }
 
-// Sayfa metadata fonksiyonu
 export async function generateMetadata({ params }) {
   try {
-    // Slug'a göre blog yazısını getir
     const post = await blogService.getPostBySlug(params.slug);
-    
-    // Etiketlerden keywords oluştur
+
     const keywords = post.tags ? post.tags.map(tag => tag.name).join(', ') : '';
-    const categoryName = post.categories && post.categories.length > 0 ? post.categories[0].name : '';
-    
-    // Tam keywords listesi
+    const categoryName = post.categories?.[0]?.name || '';
+
     const fullKeywords = [
       keywords,
       categoryName,
@@ -47,13 +43,13 @@ export async function generateMetadata({ params }) {
       'sağlıklı beslenme',
       'blog'
     ].filter(Boolean).join(', ');
-    
-    // Canonical URL
+
     const canonicalUrl = `${process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://kasarcim.com'}/blog/${params.slug}`;
-    
+    const description = post.meta_description || post.excerpt || post.content?.slice(0, 160);
+
     return {
       title: `${post.title} - Kaşarcım Blog`,
-      description: post.meta_description || post.excerpt,
+      description,
       keywords: fullKeywords,
       authors: [{ name: post.author_name || 'Kaşarcım' }],
       creator: post.author_name || 'Kaşarcım',
@@ -74,7 +70,7 @@ export async function generateMetadata({ params }) {
       },
       openGraph: {
         title: `${post.title} - Kaşarcım Blog`,
-        description: post.meta_description || post.excerpt,
+        description,
         url: canonicalUrl,
         siteName: 'Kaşarcım',
         locale: 'tr_TR',
@@ -97,7 +93,7 @@ export async function generateMetadata({ params }) {
       twitter: {
         card: 'summary_large_image',
         title: `${post.title} - Kaşarcım Blog`,
-        description: post.meta_description || post.excerpt,
+        description,
         creator: '@kasarcim',
         site: '@kasarcim',
         images: [post.featured_image],
@@ -107,7 +103,37 @@ export async function generateMetadata({ params }) {
         'article:modified_time': post.updated_at,
         'article:author': post.author_name || 'Kaşarcım',
         'article:section': categoryName,
-        'article:tag': post.tags ? post.tags.map(tag => tag.name).join(',') : '',
+        'article:tag': post.tags?.map(tag => tag.name).join(',') || '',
+        'structuredData': JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": canonicalUrl
+          },
+          "headline": `${post.title} - Kaşarcım Blog`,
+          "description": description,
+          "image": {
+            "@type": "ImageObject",
+            "url": post.featured_image,
+            "width": 1200,
+            "height": 630
+          },
+          "author": {
+            "@type": "Person",
+            "name": post.author_name || "Kaşarcım"
+          },
+          "publisher": {
+            "@type": "Organization",
+            "name": "Kaşarcım",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://cdn.kasarcim.com/727b287e1370e7bc_logo.png"
+            }
+          },
+          "datePublished": post.published_at,
+          "dateModified": post.updated_at
+        })
       }
     };
   } catch (error) {
@@ -122,7 +148,6 @@ export async function generateMetadata({ params }) {
     };
   }
 }
-
 export default async function BlogPost({ params }) {
   try {
     // Slug'a göre blog yazısını getir
