@@ -16,6 +16,7 @@ import {
   FaCreditCard,
   FaMoneyBillAlt,
   FaShippingFast,
+  FaCopy,
 } from "react-icons/fa";
 import { UserService, OrderService } from "@/services";
 
@@ -89,6 +90,9 @@ const PaymentPage = () => {
     cardExpiry: "",
     cardCvc: "",
   });
+
+  // IBAN kopyalama durumu
+  const [ibanCopied, setIbanCopied] = useState(false);
 
   // Input refs for focus management
   const emailRef = useRef(null);
@@ -330,7 +334,7 @@ const PaymentPage = () => {
   useEffect(() => {
     if (mounted && cartItems.length === 0) {
       showLoader();
-      router.push('/urunler');
+      router.push("/urunler");
     }
   }, [mounted, cartItems, router, showLoader]);
 
@@ -517,6 +521,26 @@ const PaymentPage = () => {
     }
 
     return email;
+  };
+
+  // IBAN kopyalama fonksiyonu
+  const copyIbanToClipboard = async () => {
+    const iban = "TR72 0011 1000 0000 0070 5463 42";
+    try {
+      await navigator.clipboard.writeText(iban);
+      setIbanCopied(true);
+      setTimeout(() => setIbanCopied(false), 2000);
+    } catch (err) {
+      // Fallback için manuel kopyalama
+      const textArea = document.createElement("textarea");
+      textArea.value = iban;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      setIbanCopied(true);
+      setTimeout(() => setIbanCopied(false), 2000);
+    }
   };
 
   if (!mounted || authLoading) {
@@ -974,10 +998,10 @@ const PaymentPage = () => {
 
         // Sipariş tamamlandı sayfasına yönlendir
         const redirectUrl = `/siparis-basarili?orderId=${order.id}&total=${finalTotal}&paymentMethod=${paymentMethod}`;
-        
+
         // Loader'ı göster
         showLoader();
-        
+
         // Yönlendirme
         window.location.href = redirectUrl;
       } catch (error) {
@@ -1794,7 +1818,6 @@ const PaymentPage = () => {
                             } opacity-50 cursor-not-allowed`}
                             onClick={(e) => {
                               e.preventDefault();
-                             
                             }}
                           >
                             <div className="flex items-center justify-between">
@@ -1815,8 +1838,7 @@ const PaymentPage = () => {
                                 </span>
                                 <div
                                   className={`h-5 w-5 border-2 rounded-full border-gray-300 bg-gray-100`}
-                                >
-                                </div>
+                                ></div>
                               </div>
                             </div>
                           </div>
@@ -1863,7 +1885,7 @@ const PaymentPage = () => {
                                       Ad Soyad:
                                     </span>
                                     <span className="font-medium text-gray-800">
-                                      Emrah Şander
+                                      Ramazan Deniz SAĞ
                                     </span>
                                   </div>
                                   <div className="flex justify-between">
@@ -1871,14 +1893,45 @@ const PaymentPage = () => {
                                       Banka:
                                     </span>
                                     <span className="font-medium text-gray-800">
-                                      Türkiye İş Bankası
+                                      Enpara
                                     </span>
                                   </div>
+
                                   <div className="flex justify-between">
                                     <span className="text-gray-600">IBAN:</span>
                                     <span className="font-medium text-gray-800">
-                                      TR64 0006 4000 0011 2345 6789 01
+                                      TR720011100000000070546342
                                     </span>
+                                  </div>
+                                  <div className="w-full">
+                                    <button
+                                      onClick={copyIbanToClipboard}
+                                      className={`w-full items-center justify-center flex text-center px-3 py-1.5 sm:p-1 rounded transition-colors text-sm sm:text-xs ${
+                                        ibanCopied
+                                          ? "bg-green-100 text-green-600"
+                                          : "bg-gray-100 hover:bg-gray-200 text-gray-600"
+                                      }`}
+                                      title={
+                                        ibanCopied
+                                          ? "Kopyalandı!"
+                                          : "IBAN'ı Kopyala"
+                                      }
+                                    >
+                                      <span className=" w-full items-center justify-center flex flex-row gap-1">
+                                        {ibanCopied ? (
+                                          <>
+                                            <FaCheck className="w-3 h-3" />
+                                            Kopyalandı
+                                          </>
+                                        ) : (
+                                          <>
+                                            <FaCopy className="w-3 h-3" />
+                                            Kopyala
+                                          </>
+                                        )}
+                                      </span>
+                                     
+                                    </button>
                                   </div>
                                 </div>
                                 <div className="mt-4 p-3 bg-white border border-orange-200 rounded-lg">
