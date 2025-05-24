@@ -6,7 +6,7 @@ export async function GET() {
     const urls = data?.results?.map(blog => `
       <url>
         <loc>https://kasarcim.com/blog/${blog.slug}</loc>
-        <lastmod>${blog.updated_at || blog.created_at}</lastmod>
+        <lastmod>${blog.published_at || blog.published_at}</lastmod>
         <changefreq>daily</changefreq>
         <priority>0.6</priority>
       </url>`).join('');
