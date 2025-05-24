@@ -985,7 +985,7 @@ const PaymentPage = () => {
               items: cartItems.map((item) => ({
                 item_id: item.id,
                 item_name: item.name,
-                price: parseFloat(item.currentPrice || item.price),
+                price: parseFloat(parseFloat(item.currentPrice || item.price).toFixed(2)), // ✅ sayısal ve 2 hane
                 quantity: item.quantity,
               })),
             },

@@ -35,7 +35,7 @@ export default function ProductDetail({ product: initialProduct, slug }) {
             {
               item_id: product.id,
               item_name: product.name,
-              price: parseFloat(product.currentPrice || product.price),
+              price: parseFloat(parseFloat(item.currentPrice || item.price).toFixed(2)), // ✅ sayısal ve 2 hane
               item_brand: 'Kaşarcım',
               item_category: product.category?.name || 'Peynir',
               quantity: 1

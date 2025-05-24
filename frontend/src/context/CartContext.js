@@ -136,7 +136,7 @@ export function CartProvider({ children }) {
             {
               item_name: product.name,
               item_id: product.id,
-              price: parseFloat(product.currentPrice || product.price),
+              price: parseFloat(parseFloat(item.currentPrice || item.price).toFixed(2)), // ✅ sayısal ve 2 hane
               quantity: quantity
             }
           ]
@@ -170,7 +170,7 @@ export function CartProvider({ children }) {
             {
               item_name: productToRemove.name,
               item_id: productToRemove.id,
-              price: parseFloat(productToRemove.currentPrice || productToRemove.price),
+              price: parseFloat(parseFloat(item.currentPrice || item.price).toFixed(2)), // ✅ sayısal ve 2 hane
               quantity: productToRemove.quantity || 1
             }
           ]
