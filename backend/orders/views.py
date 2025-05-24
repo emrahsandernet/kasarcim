@@ -76,7 +76,6 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         # Ürünleri getir ve toplam tutarı hesapla
         total_price = Decimal('0')  # İndirimli toplam
-        original_total_price = Decimal('0')  # Orijinal toplam (indirim öncesi)
         products = {}
         for item in items_data:
             product_id = item.get('product_id')
@@ -86,15 +85,10 @@ class OrderViewSet(viewsets.ModelViewSet):
                 products[product_id] = product
                 # İndirimli fiyatı kullan
                 current_price = product.get_current_price()
-                original_price = product.price
                 
                 total_price += current_price * Decimal(quantity)
-                original_total_price += original_price * Decimal(quantity)
             except Product.DoesNotExist:
                 return Response({'error': f'Ürün bulunamadı: {product_id}'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Ürün indirimleri toplamı
-        product_discount = original_total_price - total_price
 
         # Kupon indirimi hesapla (indirimli toplam üzerinden - doğru yaklaşım)
         coupon_discount = Decimal('0')
@@ -112,28 +106,10 @@ class OrderViewSet(viewsets.ModelViewSet):
             except Coupon.DoesNotExist:
                 pass  # Geçersiz kupon varsa yoksay
 
-        # Toplam indirim (ürün indirimleri + kupon indirimi)
-        total_discount = product_discount + coupon_discount
+        # NOT: order.discount sadece kupon indirimi (ürün indirimleri total_price'da zaten dahil)
         
-        # Final hesaplama (indirimli fiyat - kupon indirimi)
-        final_price = total_price - coupon_discount
+        # Not: Final hesaplamalar Order.save() metodunda otomatik yapılır
         
-        # Kargo ücreti hesaplama (indirimli toplam üzerinden)
-        if total_price < Decimal('1500'):
-            shipping_cost = Decimal('100.00')
-        else:
-            shipping_cost = Decimal('0.00')
-            
-        # Kapıda ödeme ücreti hesaplama
-        if payment_method == 'cash_on_delivery':
-            cod_fee = Decimal('30.00')
-        else:
-            cod_fee = Decimal('0.00')
-        
-        # Final fiyatı güncelle (kargo ve kapıda ödeme dahil)
-        final_price = final_price + shipping_cost + cod_fee
-        # Not: Frontend'den gelen fiyatlar yerine her zaman backend hesaplaması kullanılır
-
         # Kayıtlı kullanıcı
         if user:
             address_id = data.get('address_id')
@@ -153,11 +129,8 @@ class OrderViewSet(viewsets.ModelViewSet):
                 'country': address.country,
                 'phone_number': address.phone_number,
                 'payment_method': payment_method,
-                'total_price': total_price,
-                'discount': total_discount,
-                'shipping_cost': shipping_cost,
-                'cod_fee': cod_fee,
-                'final_price': final_price,
+                'total_price': total_price,  # İndirimli fiyat
+                'discount': coupon_discount,  # Sadece kupon indirimi (ürün indirimleri total_price'da zaten dahil)
                 'notes': notes,
                 'is_guest_order': False,
             }
@@ -192,11 +165,8 @@ class OrderViewSet(viewsets.ModelViewSet):
                 'country': 'Türkiye',
                 'phone_number': guest_info.get('phone', ''),
                 'payment_method': payment_method,
-                'total_price': total_price,
-                'discount': total_discount,
-                'shipping_cost': shipping_cost,
-                'cod_fee': cod_fee,
-                'final_price': final_price,
+                'total_price': total_price,  # İndirimli fiyat
+                'discount': coupon_discount,  # Sadece kupon indirimi (ürün indirimleri total_price'da zaten dahil)
                 'notes': notes,
                 'is_guest_order': True,
                 'guest_email': guest_info.get('email', ''),
@@ -261,18 +231,25 @@ class OrderViewSet(viewsets.ModelViewSet):
                     quantity=quantity
                 )
                 
-                # Sipariş toplam tutarını güncelle
-                order.total_price += (product.get_current_price() * Decimal(quantity))
+                # Tüm sipariş tutarlarını yeniden hesapla
+                total_price = Decimal('0')  # İndirimli toplam
                 
-                # Kupon varsa indirim hesapla
+                for item in order.items.all():
+                    current_price = item.price  # Zaten indirimli fiyat kayıtlı
+                    total_price += current_price * Decimal(item.quantity)
+                
+                # Kupon indirimi hesapla
+                coupon_discount = Decimal('0')
                 if order.coupon:
                     if order.coupon.discount_type == 'percentage':
-                        order.discount = order.total_price * (Decimal(str(order.coupon.discount_value)) / Decimal('100'))
+                        coupon_discount = total_price * (Decimal(str(order.coupon.discount_value)) / Decimal('100'))
                     else:
-                        order.discount = Decimal(str(order.coupon.discount_value))
+                        coupon_discount = min(Decimal(str(order.coupon.discount_value)), total_price)
                 
-                order.final_price = order.total_price - order.discount
-                order.save()
+                # Order'ı güncelle (Order.save() otomatik hesaplamalar yapar)
+                order.total_price = total_price
+                order.discount = coupon_discount  # Sadece kupon indirimi
+                order.save()  # save() metodu shipping_cost, cod_fee, final_price hesaplar
                 
             item_serializer = OrderItemSerializer(order_item)
             return Response(item_serializer.data, status=status.HTTP_201_CREATED)
@@ -294,20 +271,30 @@ class OrderViewSet(viewsets.ModelViewSet):
             
             if not coupon.is_valid:
                 return Response({'error': 'Kupon geçerli değil.'}, status=status.HTTP_400_BAD_REQUEST)
-                
-            if order.total_price < coupon.min_purchase_amount:
+            
+            # Tüm sipariş tutarlarını yeniden hesapla
+            total_price = Decimal('0')  # İndirimli toplam
+            
+            for item in order.items.all():
+                current_price = item.price  # Zaten indirimli fiyat kayıtlı
+                total_price += current_price * Decimal(item.quantity)
+            
+            # Kupon minimum tutarı kontrol et (yeniden hesaplanan toplam ile)
+            if total_price < coupon.min_purchase_amount:
                 return Response({'error': f'Bu kuponu kullanmak için minimum {coupon.min_purchase_amount} TL tutarında alışveriş yapmalısınız.'}, 
                                 status=status.HTTP_400_BAD_REQUEST)
             
-            order.coupon = coupon
-            
-            # İndirim tutarını hesapla
+            # Kupon indirimi hesapla
+            coupon_discount = Decimal('0')
             if coupon.discount_type == 'percentage':
-                order.discount = order.total_price * (Decimal(str(coupon.discount_value)) / Decimal('100'))
+                coupon_discount = total_price * (Decimal(str(coupon.discount_value)) / Decimal('100'))
             else:
-                order.discount = min(Decimal(str(coupon.discount_value)), order.total_price)
+                coupon_discount = min(Decimal(str(coupon.discount_value)), total_price)
             
-            order.final_price = order.total_price - order.discount
+            # Order'ı güncelle (Order.save() otomatik hesaplamalar yapar)
+            order.coupon = coupon
+            order.total_price = total_price
+            order.discount = coupon_discount  # Sadece kupon indirimi
             order.save()
             
             # Kupon kullanım sayısını artır

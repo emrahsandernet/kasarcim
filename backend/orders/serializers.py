@@ -180,67 +180,13 @@ class OrderSerializer(serializers.ModelSerializer):
             return None
         
     def create(self, validated_data):
-        from decimal import Decimal
+        # Order.save() metodu tüm hesaplamaları otomatik yapar
         user = self.context['request'].user
         validated_data['user'] = user
-        
-        # Kargo ücretini hesapla
-        total_price = validated_data.get('total_price', Decimal('0'))
-        
-        # 1500 TL'den az ise kargo ücreti 100 TL, değilse ücretsiz
-        if total_price < Decimal('1500'):
-            shipping_cost = Decimal('100.00')
-        else:
-            shipping_cost = Decimal('0.00')
-            
-        # Kapıda ödeme ücreti hesapla
-        payment_method = validated_data.get('payment_method', 'online')
-        if payment_method == 'cash_on_delivery':
-            cod_fee = Decimal('30.00')
-        else:
-            cod_fee = Decimal('0.00')
-            
-        # Ücretleri ayarla
-        validated_data['shipping_cost'] = shipping_cost
-        validated_data['cod_fee'] = cod_fee
-        
-        # Final fiyatı hesapla (kargo ve kapıda ödeme dahil)
-        validated_data['final_price'] = (
-            total_price 
-            - validated_data.get('discount', Decimal('0')) 
-            + shipping_cost 
-            + cod_fee
-        )
-            
         return super().create(validated_data)
         
     def update(self, instance, validated_data):
-        from decimal import Decimal
-        # Fiyat hesaplamaları
-        total_price = validated_data.get('total_price', instance.total_price)
-        
-        # 1500 TL'den az ise kargo ücreti 100 TL, değilse ücretsiz
-        if total_price < Decimal('1500'):
-            shipping_cost = Decimal('100.00')
-        else:
-            shipping_cost = Decimal('0.00')
-            
-        # Kapıda ödeme ücreti hesapla
-        payment_method = validated_data.get('payment_method', instance.payment_method)
-        if payment_method == 'cash_on_delivery':
-            cod_fee = Decimal('30.00')
-        else:
-            cod_fee = Decimal('0.00')
-            
-        instance.shipping_cost = shipping_cost
-        instance.cod_fee = cod_fee
-        
-        # Discount varsa onu kullan, yoksa mevcut değeri koru
-        discount = validated_data.get('discount', instance.discount)
-        
-        # Final fiyatı hesapla (kargo ve kapıda ödeme dahil)
-        instance.final_price = total_price - discount + shipping_cost + cod_fee
-        
+        # Order.save() metodu tüm hesaplamaları otomatik yapar
         return super().update(instance, validated_data)
 
 class OrderItemCreateSerializer(serializers.ModelSerializer):

@@ -257,30 +257,6 @@ Oluşturuldu{% endblock %} {% block content %}
         </div>
 
         <table cellpadding="0" cellspacing="0" border="0" width="100%">
-          {% if order_discount_info.has_savings %}
-          <!-- Orijinal Fiyat -->
-          <tr>
-            <td
-              align="left"
-              style="padding-bottom: 8px; font-size: 14px; color: #666"
-            >
-              Orijinal Fiyat:
-            </td>
-            <td
-              align="right"
-              style="
-                padding-bottom: 8px;
-                font-size: 14px;
-                color: #999;
-                font-weight: 500;
-                text-decoration: line-through;
-              "
-            >
-              {{ order_discount_info.total_original_price|floatformat:2 }} TL
-            </td>
-          </tr>
-          {% endif %}
-
           <tr>
             <td
               align="left"
@@ -297,84 +273,11 @@ Oluşturuldu{% endblock %} {% block content %}
                 font-weight: 500;
               "
             >
-              {{ order.total_price }} TL
+              {{ order.get_subtotal_price }} TL
             </td>
           </tr>
 
-          {% if order_discount_info.has_savings %}
-          <!-- Ürün İndirimleri -->
-          {% if order_discount_info.total_savings > 0 %}
-          <tr>
-            <td
-              align="left"
-              style="padding-bottom: 8px; font-size: 14px; color: #666"
-            >
-              Ürün İndirimleri:
-            </td>
-            <td
-              align="right"
-              style="
-                padding-bottom: 8px;
-                font-size: 14px;
-                color: #27ae60;
-                font-weight: 500;
-              "
-            >
-              -{{ order_discount_info.total_savings|floatformat:2 }} TL
-            </td>
-          </tr>
-          {% endif %}
-
-          <!-- Kupon İndirimi -->
-          {% if order_discount_info.coupon_discount > 0 %}
-          <tr>
-            <td
-              align="left"
-              style="padding-bottom: 8px; font-size: 14px; color: #666"
-            >
-              Kupon İndirimi {% if order.coupon %}({{ order.coupon.code }}){%
-              endif %}:
-            </td>
-            <td
-              align="right"
-              style="
-                padding-bottom: 8px;
-                font-size: 14px;
-                color: #e74c3c;
-                font-weight: 500;
-              "
-            >
-              -{{ order_discount_info.coupon_discount|floatformat:2 }} TL
-            </td>
-          </tr>
-          {% endif %}
-
-          <!-- Toplam Tasarruf -->
-          <tr style="background-color: #f0f8ec">
-            <td
-              align="left"
-              style="
-                padding: 8px;
-                font-size: 14px;
-                color: #27ae60;
-                font-weight: 600;
-              "
-            >
-              🎉 Toplam Tasarrufunuz:
-            </td>
-            <td
-              align="right"
-              style="
-                padding: 8px;
-                font-size: 14px;
-                color: #27ae60;
-                font-weight: 600;
-              "
-            >
-              {{ order_discount_info.total_discount|floatformat:2 }} TL
-            </td>
-          </tr>
-          {% endif %} {% if order.cod_fee %}
+          {% if order.cod_fee %}
           <tr>
             <td
               align="left"
@@ -392,6 +295,26 @@ Oluşturuldu{% endblock %} {% block content %}
               "
             >
               {{ order.cod_fee }} TL
+            </td>
+          </tr>
+          {% endif %} {% if order.coupon %}
+          <tr>
+            <td
+              align="left"
+              style="padding-bottom: 8px; font-size: 14px; color: #666"
+            >
+              Kupon İndirimi:
+            </td>
+            <td
+              align="right"
+              style="
+                padding-bottom: 8px;
+                font-size: 14px;
+                color: #e74c3c;
+                font-weight: 500;
+              "
+            >
+              -{{ order.get_discount }} TL
             </td>
           </tr>
           {% endif %}
@@ -412,9 +335,7 @@ Oluşturuldu{% endblock %} {% block content %}
                 font-weight: 500;
               "
             >
-              {% if order.shipping_cost == 0 %}
-              <span style="color: #27ae60; font-weight: 600">Ücretsiz</span>
-              {% else %} {{ order.shipping_cost }} TL {% endif %}
+              {{ order.shipping_cost }} TL
             </td>
           </tr>
 
@@ -446,7 +367,7 @@ Oluşturuldu{% endblock %} {% block content %}
                 font-weight: 600;
               "
             >
-              {{ order.final_price }} TL
+              {{ order.get_total_price }} TL
             </td>
           </tr>
         </table>
