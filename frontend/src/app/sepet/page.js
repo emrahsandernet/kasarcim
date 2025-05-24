@@ -384,10 +384,12 @@ export default function CartPage() {
                       window.dataLayer.push({
                         event: "begin_checkout",
                         ecommerce: {
+                          currency: 'TRY',
+                          value: parseFloat(discountedTotal + shippingCost),
                           items: cartItems.map((item) => ({
                             item_id: item.id,
                             item_name: item.name,
-                            price: item.currentPrice || item.price,
+                            price: parseFloat(item.currentPrice || item.price),
                             quantity: item.quantity,
                             item_brand: "Kaşarcım",
                             item_category: item.category_name || item.category?.name || "Peynir"

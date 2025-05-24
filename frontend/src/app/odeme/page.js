@@ -985,7 +985,8 @@ const PaymentPage = () => {
               transaction_id: order.id.toString(),
               value: parseFloat(finalTotal),
               currency: "TRY",
-              payment_type: paymentMethod,
+              shipping: parseFloat(shippingCost),
+             
               items: cartItems.map((item) => ({
                 item_id: item.id,
                 item_name: item.name,

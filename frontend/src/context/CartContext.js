@@ -128,12 +128,15 @@ export function CartProvider({ children }) {
       window.dataLayer.push({
         event: 'add_to_cart',
         ecommerce: {
+          currency: 'TRY',
+          value: parseFloat(product.currentPrice || product.price),
+
           items: [
             
             {
               item_name: product.name,
               item_id: product.id,
-              price: product.currentPrice,
+              price: parseFloat(product.currentPrice || product.price),
               quantity: quantity
             }
           ]
@@ -159,12 +162,15 @@ export function CartProvider({ children }) {
     if (typeof window !== 'undefined' && window.dataLayer && productToRemove) {
       window.dataLayer.push({
         event: 'remove_from_cart',
+
         ecommerce: {
+          currency: 'TRY',
+          value: parseFloat(productToRemove.currentPrice || productToRemove.price),
           items: [
             {
               item_name: productToRemove.name,
               item_id: productToRemove.id,
-              price: productToRemove.currentPrice || productToRemove.price,
+              price: parseFloat(productToRemove.currentPrice || productToRemove.price),
               quantity: productToRemove.quantity || 1
             }
           ]

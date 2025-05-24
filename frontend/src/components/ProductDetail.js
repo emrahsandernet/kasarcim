@@ -29,11 +29,13 @@ export default function ProductDetail({ product: initialProduct, slug }) {
       window.dataLayer.push({
         event: 'view_item',
         ecommerce: {
+          currency: 'TRY',
+          value: parseFloat(product.currentPrice || product.price),
           items: [
             {
               item_id: product.id,
               item_name: product.name,
-              price: product.currentPrice || product.price,
+              price: parseFloat(product.currentPrice || product.price),
               item_brand: 'Kaşarcım',
               item_category: product.category?.name || 'Peynir',
               quantity: 1
