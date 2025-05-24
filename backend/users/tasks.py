@@ -113,6 +113,9 @@ def send_order_created_email(order_id, user_id):
         
         # Her sipariş öğesi için indirim bilgilerini hazırla
         order_items = []
+        total_original_price = 0
+        total_saved = 0
+        
         for item in order.items.all():
             product = item.product
             today = timezone.now().date()
@@ -128,9 +131,14 @@ def send_order_created_email(order_id, user_id):
             
             has_discount = discount is not None and paid_price < original_price
             discount_percentage = 0
+            item_savings = 0
             
             if has_discount:
                 discount_percentage = float(discount.discount_percentage)
+                item_savings = (original_price - paid_price) * item.quantity
+            
+            total_original_price += original_price * item.quantity
+            total_saved += item_savings
             
             order_items.append({
                 'item': item,
@@ -139,15 +147,27 @@ def send_order_created_email(order_id, user_id):
                 'original_price': original_price,
                 'discounted_price': paid_price,
                 'total_price': paid_price * item.quantity,
+                'item_savings': item_savings,
                 'product': product,
             })
         
+        # Sipariş seviyesinde toplam indirim bilgileri
+        order_discount_info = {
+            'total_original_price': total_original_price,
+            'total_paid_price': float(order.total_price),
+            'total_discount': float(order.discount),  # Backend'den gelen toplam indirim
+            'total_savings': total_saved,  # Ürün indirimlerinden tasarruf
+            'coupon_discount': float(order.discount) - total_saved if order.discount > total_saved else 0,  # Kupon indirimi
+            'has_savings': order.discount > 0,
+        }
+
         # HTML içeriği hazırla
         html_message = render_to_string('email_templates/order_created.html', {
             'user_name': user_name,
             'is_guest': is_guest,
             'order': order,
             'order_items': order_items,
+            'order_discount_info': order_discount_info,
             'payment_url': payment_url,
             'email': user_email,
             'order_id': order.id + 91185,
@@ -207,6 +227,9 @@ def send_payment_confirmed_email(order_id, user_id):
         
         # Her sipariş öğesi için indirim bilgilerini hazırla
         order_items = []
+        total_original_price = 0
+        total_saved = 0
+        
         for item in order.items.all():
             product = item.product
             today = timezone.now().date()
@@ -222,9 +245,14 @@ def send_payment_confirmed_email(order_id, user_id):
             
             has_discount = discount is not None and paid_price < original_price
             discount_percentage = 0
+            item_savings = 0
             
             if has_discount:
                 discount_percentage = float(discount.discount_percentage)
+                item_savings = (original_price - paid_price) * item.quantity
+            
+            total_original_price += original_price * item.quantity
+            total_saved += item_savings
             
             order_items.append({
                 'item': item,
@@ -233,15 +261,27 @@ def send_payment_confirmed_email(order_id, user_id):
                 'original_price': original_price,
                 'discounted_price': paid_price,
                 'total_price': paid_price * item.quantity,
+                'item_savings': item_savings,
                 'product': product,
             })
         
+        # Sipariş seviyesinde toplam indirim bilgileri
+        order_discount_info = {
+            'total_original_price': total_original_price,
+            'total_paid_price': float(order.total_price),
+            'total_discount': float(order.discount),  # Backend'den gelen toplam indirim
+            'total_savings': total_saved,  # Ürün indirimlerinden tasarruf
+            'coupon_discount': float(order.discount) - total_saved if order.discount > total_saved else 0,  # Kupon indirimi
+            'has_savings': order.discount > 0,
+        }
+
         # HTML içeriği hazırla
         html_message = render_to_string('email_templates/payment_confirmed.html', {
             'user_name': user_name,
             'is_guest': is_guest,
             'order': order,
             'order_items': order_items,
+            'order_discount_info': order_discount_info,
             'order_detail_url': order_detail_url,
             'email': user_email,
             'base_image_url': base_image_url,
@@ -311,6 +351,9 @@ def send_order_shipped_email(order_id, user_id):
         
         # Her sipariş öğesi için indirim bilgilerini hazırla
         order_items = []
+        total_original_price = 0
+        total_saved = 0
+        
         for item in order.items.all():
             product = item.product
             today = timezone.now().date()
@@ -326,9 +369,14 @@ def send_order_shipped_email(order_id, user_id):
             
             has_discount = discount is not None and paid_price < original_price
             discount_percentage = 0
+            item_savings = 0
             
             if has_discount:
                 discount_percentage = float(discount.discount_percentage)
+                item_savings = (original_price - paid_price) * item.quantity
+            
+            total_original_price += original_price * item.quantity
+            total_saved += item_savings
             
             order_items.append({
                 'item': item,
@@ -337,15 +385,27 @@ def send_order_shipped_email(order_id, user_id):
                 'original_price': original_price,
                 'discounted_price': paid_price,
                 'total_price': paid_price * item.quantity,
+                'item_savings': item_savings,
                 'product': product,
             })
         
+        # Sipariş seviyesinde toplam indirim bilgileri
+        order_discount_info = {
+            'total_original_price': total_original_price,
+            'total_paid_price': float(order.total_price),
+            'total_discount': float(order.discount),  # Backend'den gelen toplam indirim
+            'total_savings': total_saved,  # Ürün indirimlerinden tasarruf
+            'coupon_discount': float(order.discount) - total_saved if order.discount > total_saved else 0,  # Kupon indirimi
+            'has_savings': order.discount > 0,
+        }
+
         # HTML içeriği hazırla
         html_message = render_to_string('email_templates/order_shipped.html', {
             'user_name': user_name,
             'is_guest': is_guest,
             'order': order,
             'order_items': order_items,
+            'order_discount_info': order_discount_info,
             'tracking_number': tracking_number,
             'tracking_url': tracking_url,
             'shipping_company': shipping_company,

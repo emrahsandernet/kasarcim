@@ -75,7 +75,8 @@ class OrderViewSet(viewsets.ModelViewSet):
         user = request.user if request.user.is_authenticated else None
 
         # Ürünleri getir ve toplam tutarı hesapla
-        total_price = Decimal('0')
+        total_price = Decimal('0')  # İndirimli toplam
+        original_total_price = Decimal('0')  # Orijinal toplam (indirim öncesi)
         products = {}
         for item in items_data:
             product_id = item.get('product_id')
@@ -85,28 +86,38 @@ class OrderViewSet(viewsets.ModelViewSet):
                 products[product_id] = product
                 # İndirimli fiyatı kullan
                 current_price = product.get_current_price()
+                original_price = product.price
+                
                 total_price += current_price * Decimal(quantity)
+                original_total_price += original_price * Decimal(quantity)
             except Product.DoesNotExist:
                 return Response({'error': f'Ürün bulunamadı: {product_id}'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # İndirim hesapla
-        discount = Decimal('0')
+        # Ürün indirimleri toplamı
+        product_discount = original_total_price - total_price
+
+        # Kupon indirimi hesapla (orijinal toplam üzerinden)
+        coupon_discount = Decimal('0')
         applied_coupon = None
         if coupon_code:
             try:
                 coupon = Coupon.objects.get(code=coupon_code)
-                if coupon.is_valid and total_price >= coupon.min_purchase_amount:
+                if coupon.is_valid and original_total_price >= coupon.min_purchase_amount:
                     if coupon.discount_type == 'percentage':
-                        discount = total_price * (Decimal(str(coupon.discount_value)) / Decimal('100'))
+                        coupon_discount = original_total_price * (Decimal(str(coupon.discount_value)) / Decimal('100'))
                     else:
-                        discount = min(Decimal(str(coupon.discount_value)), total_price)
+                        coupon_discount = min(Decimal(str(coupon.discount_value)), original_total_price)
                     applied_coupon = coupon
             except Coupon.DoesNotExist:
                 pass  # Geçersiz kupon varsa yoksay
 
-        final_price = total_price - discount
+        # Toplam indirim (ürün indirimleri + kupon indirimi)
+        total_discount = product_discount + coupon_discount
         
-        # Kargo ücreti hesaplama
+        # Final hesaplama (orijinal fiyat - toplam indirim)
+        final_price = original_total_price - total_discount
+        
+        # Kargo ücreti hesaplama (indirimli toplam üzerinden)
         if total_price < Decimal('1500'):
             shipping_cost = Decimal('100.00')
         else:
@@ -142,7 +153,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                 'phone_number': address.phone_number,
                 'payment_method': payment_method,
                 'total_price': total_price,
-                'discount': discount,
+                'discount': total_discount,
                 'shipping_cost': shipping_cost,
                 'cod_fee': cod_fee,
                 'final_price': final_price,
@@ -181,7 +192,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                 'phone_number': guest_info.get('phone', ''),
                 'payment_method': payment_method,
                 'total_price': total_price,
-                'discount': discount,
+                'discount': total_discount,
                 'shipping_cost': shipping_cost,
                 'cod_fee': cod_fee,
                 'final_price': final_price,
