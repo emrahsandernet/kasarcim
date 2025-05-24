@@ -5,6 +5,6 @@ export default function robots() {
       allow: '/',
       disallow: ['/api/', '/km-admin/', '/admin/']
     },
-    sitemap: 'https://kasarcim.com/sitemap.xml'
+    sitemap: 'https://kasarcim.com/sitemap/sitemap.xml'
   }
 } 
