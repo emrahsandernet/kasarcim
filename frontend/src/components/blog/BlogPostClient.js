@@ -31,10 +31,16 @@ function extractContentBeforeFirstH2(content) {
 export default function BlogPostClient({ post, tableOfContents }) {
   const [activeSection, setActiveSection] = useState('');
   const [readingProgress, setReadingProgress] = useState(0);
+  const [isClient, setIsClient] = useState(false);
   
-  // Sayfa kaydırıldığında aktif başlığı takip et
+  // Client-side mount kontrolü
   useEffect(() => {
-    if (typeof window === 'undefined' || tableOfContents.length === 0) return;
+    setIsClient(true);
+  }, []);
+
+  // Intersection Observer için ayrı useEffect
+  useEffect(() => {
+    if (!isClient || !tableOfContents || tableOfContents.length === 0) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -48,37 +54,49 @@ export default function BlogPostClient({ post, tableOfContents }) {
     );
 
     // Her başlık elementini izle
+    const elementsToObserve = [];
     tableOfContents.forEach((heading) => {
       const element = document.getElementById(heading.slug);
-      if (element) observer.observe(element);
+      if (element) {
+        observer.observe(element);
+        elementsToObserve.push(element);
+      }
     });
+
+    return () => {
+      elementsToObserve.forEach((element) => {
+        observer.unobserve(element);
+      });
+    };
+  }, [isClient, post.id]); // isClient de dependency olarak ekledim
+
+  // Scroll progress için ayrı useEffect
+  useEffect(() => {
+    if (!isClient) return;
     
-    // Okuma ilerlemesini takip et
     const handleScroll = () => {
       const totalHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
       const scrollPosition = window.scrollY;
       const progress = (scrollPosition / totalHeight) * 100;
-      setReadingProgress(progress);
+      setReadingProgress(Math.min(Math.max(progress, 0), 100));
     };
     
     window.addEventListener('scroll', handleScroll);
-
+    
     return () => {
-      tableOfContents.forEach((heading) => {
-        const element = document.getElementById(heading.slug);
-        if (element) observer.unobserve(element);
-      });
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [tableOfContents]);
+  }, [isClient]);
 
   // İlk H2 başlığından önceki içeriği çıkar
   const contentBeforeFirstH2 = extractContentBeforeFirstH2(post.content);
 
   return (
     <div className="container max-w-6xl mx-auto px-4 md:px-8 py-20">
-      {/* Okuma İlerleme Çubuğu */}
-      <div className="fixed top-0 left-0 z-50 h-0.5 bg-amber-400" style={{ width: `${readingProgress}%` }}></div>
+      {/* Okuma İlerleme Çubuğu - Sadece client-side */}
+      {isClient && (
+        <div className="fixed top-0 left-0 z-50 h-0.5 bg-amber-400" style={{ width: `${readingProgress}%` }}></div>
+      )}
       
       <article className="max-w-3xl mx-auto">
         {/* Başlık Kısmı - Minimalist Tasarım */}
@@ -262,7 +280,7 @@ export default function BlogPostClient({ post, tableOfContents }) {
       
       {/* İlişkili Yazılar */}
       {post.related_posts && post.related_posts.length > 0 && (
-        <div className="max-w-6xl mx-auto mt-32 mb-10">
+        <div className="mt-20">
           <h2 className="text-2xl font-light text-gray-800 mb-12 pb-4 border-b border-gray-100">İlişkili Yazılar</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {post.related_posts.map((relatedPost) => (
