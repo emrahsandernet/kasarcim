@@ -1,11 +1,6 @@
-
 import blogService from '@/services/blogService';
 import BlogHomeClient from '@/components/blog/BlogHomeClient';
 import { notFound } from 'next/navigation';
-import { motion } from 'framer-motion';
-
-
-
 
 export default async function BlogPage({ searchParams }) {
   try {
@@ -100,12 +95,7 @@ export default async function BlogPage({ searchParams }) {
         <div className="flex flex-col sm:flex-col-reverse">
       
         
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-4 sm:mb-16 pt-4 sm:pt-8"
-        >
+        <div className="text-center mb-4 sm:mb-16 pt-4 sm:pt-8">
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 relative">
             <span className="relative inline-block">
               Blog
@@ -116,7 +106,7 @@ export default async function BlogPage({ searchParams }) {
             Blog yazılarımızı okuyun.
            
           </p>
-        </motion.div>
+        </div>
       </div>
       );
     }
