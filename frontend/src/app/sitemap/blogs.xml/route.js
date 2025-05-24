@@ -1,8 +1,9 @@
 export async function GET() {
     const res = await fetch('https://kasarcim.com/api/blog/posts/');
     const data = await res.json();
+
   
-    const urls = data.map(blog => `
+    const urls = data?.results?.map(blog => `
       <url>
         <loc>https://kasarcim.com/blog/${blog.slug}</loc>
         <lastmod>${blog.updated_at || blog.created_at}</lastmod>
