@@ -15,7 +15,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
         
     def create(self, validated_data):
         product = validated_data.get('product')
-        validated_data['price'] = product.price
+        validated_data['price'] = product.get_current_price()
         return super().create(validated_data)
 
 class ShipmentSerializer(serializers.ModelSerializer):

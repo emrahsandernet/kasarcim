@@ -122,23 +122,23 @@ def send_order_created_email(order_id, user_id):
                 end_date__gte=today
             ).first()
             
-            has_discount = False
-            discount_percentage = 0
-            original_price = float(item.price)
-            discounted_price = original_price
+            # item.price artık zaten indirimli fiyat (eğer indirim varsa)
+            paid_price = float(item.price)
+            original_price = float(product.price)  # Orijinal fiyat product'tan gelir
             
-            if discount:
-                has_discount = True
+            has_discount = discount is not None and paid_price < original_price
+            discount_percentage = 0
+            
+            if has_discount:
                 discount_percentage = float(discount.discount_percentage)
-                discounted_price = original_price * (1 - discount_percentage / 100)
             
             order_items.append({
                 'item': item,
                 'has_discount': has_discount,
                 'discount_percentage': discount_percentage,
                 'original_price': original_price,
-                'discounted_price': discounted_price,
-                'total_price': discounted_price * item.quantity,
+                'discounted_price': paid_price,
+                'total_price': paid_price * item.quantity,
                 'product': product,
             })
         
@@ -216,23 +216,23 @@ def send_payment_confirmed_email(order_id, user_id):
                 end_date__gte=today
             ).first()
             
-            has_discount = False
-            discount_percentage = 0
-            original_price = float(item.price)
-            discounted_price = original_price
+            # item.price artık zaten indirimli fiyat (eğer indirim varsa)
+            paid_price = float(item.price)
+            original_price = float(product.price)  # Orijinal fiyat product'tan gelir
             
-            if discount:
-                has_discount = True
+            has_discount = discount is not None and paid_price < original_price
+            discount_percentage = 0
+            
+            if has_discount:
                 discount_percentage = float(discount.discount_percentage)
-                discounted_price = original_price * (1 - discount_percentage / 100)
             
             order_items.append({
                 'item': item,
                 'has_discount': has_discount,
                 'discount_percentage': discount_percentage,
                 'original_price': original_price,
-                'discounted_price': discounted_price,
-                'total_price': discounted_price * item.quantity,
+                'discounted_price': paid_price,
+                'total_price': paid_price * item.quantity,
                 'product': product,
             })
         
@@ -320,23 +320,23 @@ def send_order_shipped_email(order_id, user_id):
                 end_date__gte=today
             ).first()
             
-            has_discount = False
-            discount_percentage = 0
-            original_price = float(item.price)
-            discounted_price = original_price
+            # item.price artık zaten indirimli fiyat (eğer indirim varsa)
+            paid_price = float(item.price)
+            original_price = float(product.price)  # Orijinal fiyat product'tan gelir
             
-            if discount:
-                has_discount = True
+            has_discount = discount is not None and paid_price < original_price
+            discount_percentage = 0
+            
+            if has_discount:
                 discount_percentage = float(discount.discount_percentage)
-                discounted_price = original_price * (1 - discount_percentage / 100)
             
             order_items.append({
                 'item': item,
                 'has_discount': has_discount,
                 'discount_percentage': discount_percentage,
                 'original_price': original_price,
-                'discounted_price': discounted_price,
-                'total_price': discounted_price * item.quantity,
+                'discounted_price': paid_price,
+                'total_price': paid_price * item.quantity,
                 'product': product,
             })
         

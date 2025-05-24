@@ -89,6 +89,18 @@ class OrderViewSet(viewsets.ModelViewSet):
             except Product.DoesNotExist:
                 return Response({'error': f'Ürün bulunamadı: {product_id}'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Frontend'den gelen toplam fiyat ile backend hesaplaması karşılaştır (güvenlik)
+        frontend_total = data.get('total_price')
+        if frontend_total is not None:
+            frontend_total = Decimal(str(frontend_total))
+            # Küçük farkları (yuvarlama hatalarını) tolere et (0.01 TL)
+            if abs(total_price - frontend_total) > Decimal('0.01'):
+                return Response({
+                    'error': 'Fiyat hesaplamasında tutarsızlık tespit edildi. Sayfa yenilenerek tekrar deneyin.',
+                    'backend_total': str(total_price),
+                    'frontend_total': str(frontend_total)
+                }, status=status.HTTP_400_BAD_REQUEST)
+
         # İndirim hesapla
         discount = Decimal('0')
         applied_coupon = None
@@ -105,6 +117,17 @@ class OrderViewSet(viewsets.ModelViewSet):
                 pass  # Geçersiz kupon varsa yoksay
 
         final_price = total_price - discount
+
+        # Final fiyat kontrolü (kupon indirimi dahil) - Güvenlik
+        frontend_final = data.get('final_price')
+        if frontend_final is not None:
+            frontend_final = Decimal(str(frontend_final))
+            if abs(final_price - frontend_final) > Decimal('0.01'):
+                return Response({
+                    'error': 'Final fiyat hesaplamasında tutarsızlık tespit edildi.',
+                    'backend_final': str(final_price),
+                    'frontend_final': str(frontend_final)
+                }, status=status.HTTP_400_BAD_REQUEST)
 
         # Kayıtlı kullanıcı
         if user:
