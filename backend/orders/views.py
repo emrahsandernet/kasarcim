@@ -105,17 +105,22 @@ class OrderViewSet(viewsets.ModelViewSet):
                 pass  # Geçersiz kupon varsa yoksay
 
         final_price = total_price - discount
-
-        # Final fiyat kontrolü (kupon indirimi dahil) - Güvenlik
-        frontend_final = data.get('final_price')
-        if frontend_final is not None:
-            frontend_final = Decimal(str(frontend_final))
-            if abs(final_price - frontend_final) > Decimal('0.01'):
-                return Response({
-                    'error': 'Final fiyat hesaplamasında tutarsızlık tespit edildi.',
-                    'backend_final': str(final_price),
-                    'frontend_final': str(frontend_final)
-                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Kargo ücreti hesaplama
+        if total_price < Decimal('1500'):
+            shipping_cost = Decimal('100.00')
+        else:
+            shipping_cost = Decimal('0.00')
+            
+        # Kapıda ödeme ücreti hesaplama
+        if payment_method == 'cash_on_delivery':
+            cod_fee = Decimal('30.00')
+        else:
+            cod_fee = Decimal('0.00')
+        
+        # Final fiyatı güncelle (kargo ve kapıda ödeme dahil)
+        final_price = final_price + shipping_cost + cod_fee
+        # Not: Frontend'den gelen fiyatlar yerine her zaman backend hesaplaması kullanılır
 
         # Kayıtlı kullanıcı
         if user:
@@ -138,6 +143,8 @@ class OrderViewSet(viewsets.ModelViewSet):
                 'payment_method': payment_method,
                 'total_price': total_price,
                 'discount': discount,
+                'shipping_cost': shipping_cost,
+                'cod_fee': cod_fee,
                 'final_price': final_price,
                 'notes': notes,
                 'is_guest_order': False,
@@ -175,6 +182,8 @@ class OrderViewSet(viewsets.ModelViewSet):
                 'payment_method': payment_method,
                 'total_price': total_price,
                 'discount': discount,
+                'shipping_cost': shipping_cost,
+                'cod_fee': cod_fee,
                 'final_price': final_price,
                 'notes': notes,
                 'is_guest_order': True,
