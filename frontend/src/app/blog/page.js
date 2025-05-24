@@ -1,8 +1,8 @@
-import Link from 'next/link';
-import Image from 'next/image';
+
 import blogService from '@/services/blogService';
 import BlogHomeClient from '@/components/blog/BlogHomeClient';
 import { notFound } from 'next/navigation';
+import { motion } from 'framer-motion';
 
 
 

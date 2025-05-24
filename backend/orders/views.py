@@ -10,6 +10,7 @@ from coupons.models import Coupon
 from users.models import Address
 from .serializers import OrderSerializer, OrderItemSerializer, OrderItemCreateSerializer, ShipmentSerializer
 from django.utils import timezone
+from decimal import Decimal
 
 
 class IsAuthenticatedOrCreateOnly(permissions.BasePermission):
@@ -72,7 +73,6 @@ class OrderViewSet(viewsets.ModelViewSet):
             payment_method = 'online'
 
         user = request.user if request.user.is_authenticated else None
-        from decimal import Decimal
 
         # Ürünleri getir ve toplam tutarı hesapla
         total_price = Decimal('0')
@@ -83,7 +83,9 @@ class OrderViewSet(viewsets.ModelViewSet):
             try:
                 product = Product.objects.get(id=product_id)
                 products[product_id] = product
-                total_price += product.price * Decimal(quantity)
+                # İndirimli fiyatı kullan
+                current_price = product.get_current_price()
+                total_price += current_price * Decimal(quantity)
             except Product.DoesNotExist:
                 return Response({'error': f'Ürün bulunamadı: {product_id}'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -182,7 +184,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                     OrderItem.objects.create(
                         order=order,
                         product=product,
-                        price=product.price,
+                        price=product.get_current_price(),
                         quantity=quantity
                     )
 
@@ -223,13 +225,12 @@ class OrderViewSet(viewsets.ModelViewSet):
                 order_item = OrderItem.objects.create(
                     order=order,
                     product=product,
-                    price=product.price,
+                    price=product.get_current_price(),
                     quantity=quantity
                 )
                 
-                from decimal import Decimal
                 # Sipariş toplam tutarını güncelle
-                order.total_price += (product.price * Decimal(quantity))
+                order.total_price += (product.get_current_price() * Decimal(quantity))
                 
                 # Kupon varsa indirim hesapla
                 if order.coupon:
@@ -268,7 +269,6 @@ class OrderViewSet(viewsets.ModelViewSet):
             
             order.coupon = coupon
             
-            from decimal import Decimal
             # İndirim tutarını hesapla
             if coupon.discount_type == 'percentage':
                 order.discount = order.total_price * (Decimal(str(coupon.discount_value)) / Decimal('100'))

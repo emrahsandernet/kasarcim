@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils.text import slugify
 from django.contrib.auth.models import User
+from django.utils import timezone
+from decimal import Decimal
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -50,6 +52,23 @@ class Product(models.Model):
     @property
     def is_in_stock(self):
         return self.stock > 0
+
+    def get_active_discount(self):
+        """Aktif indirimi döndürür"""
+        today = timezone.now().date()
+        return self.discounts.filter(
+            is_active=True,
+            start_date__lte=today,
+            end_date__gte=today
+        ).first()
+    
+    def get_current_price(self):
+        """İndirimli fiyatı varsa indirimli fiyatı, yoksa normal fiyatı döndürür"""
+        active_discount = self.get_active_discount()
+        if active_discount:
+            discount_percentage = active_discount.discount_percentage
+            return self.price * (Decimal('1') - discount_percentage / Decimal('100'))
+        return self.price
 
 class Discount(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='discounts')
